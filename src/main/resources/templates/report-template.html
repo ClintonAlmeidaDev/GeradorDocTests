@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        @page { size: A4; margin: 15mm 12mm; background-color: #f8fafc; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #1e293b; font-size: 10pt; }
+        .header-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .header-table { width: 100%; border-collapse: collapse; }
+        .company-logo { font-size: 20pt; font-weight: bold; color: #38bdf8; }
+        .report-title { text-align: right; }
+        .report-title h1 { margin: 0; font-size: 16pt; color: #fff; text-transform: uppercase; }
+
+        .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; }
+        .meta-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 9pt; }
+        .meta-table td.label { font-weight: bold; color: #475569; width: 20%; background-color: #f8fafc; }
+
+        .request-card { background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 15px; margin-bottom: 20px; page-break-inside: avoid; }
+        .badge-method { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 8pt; color: #fff; }
+        .method-POST { background-color: #16a34a; }
+        .method-GET { background-color: #2563eb; }
+        .method-PUT { background-color: #d97706; }
+        .method-DELETE { background-color: #dc2626; }
+        .badge-status { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 8pt; }
+        .status-pass { background-color: #dcfce7; color: #15803d; }
+        .status-fail { background-color: #fee2e2; color: #b91c1c; }
+
+        .details-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .details-table th, .details-table td { border: 1px solid #e2e8f0; padding: 6px 10px; font-size: 8.5pt; text-align: left; }
+        .details-table th { background-color: #f1f5f9; color: #475569; }
+
+        .code-box { background-color: #0f172a; color: #f8fafc; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 8pt; white-space: pre-wrap; word-break: break-all; margin: 0; }
+    </style>
+</head>
+<body>
+<div class="header-banner">
+    <table class="header-table">
+        <tr>
+            <td><div class="company-logo" th:text="${companyName}">SUA_EMPRESA</div></td>
+            <td class="report-title">
+                <h1>Evidência de Teste de API</h1>
+                <p>Relatório de Auditoria &amp; Conformidade</p>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<table class="meta-table">
+    <tr>
+        <td class="label">Coleção:</td>
+        <td th:text="${collectionName}">Nome Coleção</td>
+        <td class="label">Data Execução:</td>
+        <td th:text="${executionDate}">00/00/0000</td>
+    </tr>
+    <tr>
+        <td class="label">Ambiente:</td>
+        <td th:text="${environment}">Homologação</td>
+        <td class="label">Executor:</td>
+        <td>Java Automation Service</td>
+    </tr>
+</table>
+
+<div class="request-card" th:each="req : ${results}">
+    <table style="width: 100%;">
+        <tr>
+            <td style="width: 70px;">
+                <span th:class="'badge-method method-' + ${req.request.method}" th:text="${req.request.method}">POST</span>
+            </td>
+            <td><strong th:text="${req.request.url}">https://api.exemplo.com</strong></td>
+            <td style="text-align: right;">
+                    <span th:class="${req.error != null ? 'badge-status status-fail' : 'badge-status status-pass'}"
+                          th:text="${req.error != null ? 'FALHA' : 'SUCESSO'}">SUCESSO</span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="details-table">
+        <tr>
+            <th>HTTP Status</th>
+            <th>Tempo Resposta</th>
+        </tr>
+        <tr>
+            <td th:text="${req.response.status}">200</td>
+            <td th:text="${req.response.responseTime + ' ms'}">120 ms</td>
+        </tr>
+    </table>
+
+    <div style="font-weight: bold; margin-top: 8px;">Payload Resposta (Evidência):</div>
+    <pre class="code-box" th:text="${req.response.data}">{}</pre>
+</div>
+</body>
+</html>

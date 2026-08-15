@@ -1,0 +1,15 @@
+info:
+  name: DELETE TITULO
+  type: http
+  seq: 5
+
+http:
+  method: delete
+  url: https://jsonplaceholder.typicode.com/posts/1
+  auth: inherit
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

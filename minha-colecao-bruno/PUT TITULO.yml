@@ -1,0 +1,27 @@
+info:
+  name: PUT TITULO
+  type: http
+  seq: 4
+
+http:
+  method: put
+  url: https://jsonplaceholder.typicode.com/posts/1
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "id": 1,
+        "title": "Teste atualizado",
+        "body": "Atualização via Bruno",
+        "userId": 1
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
