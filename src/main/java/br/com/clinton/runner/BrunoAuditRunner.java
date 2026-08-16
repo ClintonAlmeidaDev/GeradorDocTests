@@ -71,7 +71,7 @@ public class BrunoAuditRunner {
                     new HtmlReportGenerator();
 
             String htmlContent =
-                    htmlReportGenerator.generate(JSON_OUTPUT_PATH);
+                    htmlReportGenerator.generate(auditReport);
 
             System.out.println("Renderizando PDF de alta resolução com Playwright...");
             AuditReportGenerator.generatePdfFromHtml(htmlContent, PDF_OUTPUT_PATH);
