@@ -5,6 +5,10 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.WaitUntilState;
 
+import br.com.clinton.model.AuditReport;
+import br.com.clinton.model.RequestExecution;
+import br.com.clinton.parser.BrunoResultParser;
+
 import br.com.clinton.executor.BrunoCliExecutor;
 import br.com.clinton.report.HtmlReportGenerator;
 
@@ -26,7 +30,42 @@ public class BrunoAuditRunner {
                     BRUNO_COLLECTION_DIR,
                     JSON_OUTPUT_PATH
             );
-            System.out.println("Formatando template HTML do relatório...");
+
+            BrunoResultParser brunoResultParser =
+                    new BrunoResultParser();
+
+            AuditReport auditReport =
+                    brunoResultParser.parse(JSON_OUTPUT_PATH);
+
+            System.out.println(
+                    "Requests normalizadas: "
+                            + auditReport.getSummary().getTotalRequests()
+            );
+
+            System.out.println(
+                    "Requests com sucesso: "
+                            + auditReport.getSummary().getSuccessfulRequests()
+            );
+
+            System.out.println(
+                    "Requests com falha: "
+                            + auditReport.getSummary().getFailedRequests()
+            );
+
+            if (!auditReport.getExecutions().isEmpty()) {
+
+                RequestExecution first =
+                        auditReport.getExecutions().get(0);
+
+                System.out.println(
+                        "Primeira execução normalizada: "
+                                + first.getMethod()
+                                + " "
+                                + first.getUrl()
+                                + " -> HTTP "
+                                + first.getHttpStatus()
+                );
+            }
 
             HtmlReportGenerator htmlReportGenerator =
                     new HtmlReportGenerator();
