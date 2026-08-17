@@ -12,10 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class BrunoResultParser {
+public class BrunoResultParser implements ResultParser {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Override
     public AuditReport parse(String jsonPath) throws IOException {
 
         JsonNode rootNode = objectMapper.readTree(

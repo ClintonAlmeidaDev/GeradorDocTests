@@ -1,9 +1,6 @@
 package br.com.clinton.runner;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
-import com.microsoft.playwright.options.WaitUntilState;
+import br.com.clinton.parser.ResultParser;
 
 import br.com.clinton.model.AuditReport;
 import br.com.clinton.model.RequestExecution;
@@ -13,8 +10,6 @@ import br.com.clinton.executor.BrunoCliExecutor;
 import br.com.clinton.report.HtmlReportGenerator;
 
 import br.com.clinton.auditor.AuditReportGenerator;
-
-import java.nio.file.Paths;
 
 public class BrunoAuditRunner {
 
@@ -30,12 +25,11 @@ public class BrunoAuditRunner {
                     BRUNO_COLLECTION_DIR,
                     JSON_OUTPUT_PATH
             );
-
-            BrunoResultParser brunoResultParser =
+            ResultParser resultParser =
                     new BrunoResultParser();
 
             AuditReport auditReport =
-                    brunoResultParser.parse(JSON_OUTPUT_PATH);
+                    resultParser.parse(JSON_OUTPUT_PATH);
 
             System.out.println(
                     "Requests normalizadas: "
