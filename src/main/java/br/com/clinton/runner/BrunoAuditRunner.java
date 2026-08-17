@@ -10,6 +10,7 @@ import br.com.clinton.executor.BrunoCliExecutor;
 import br.com.clinton.report.HtmlReportGenerator;
 
 import br.com.clinton.auditor.AuditReportGenerator;
+import br.com.clinton.executor.BrunoExecutionResult;
 
 public class BrunoAuditRunner {
 
@@ -21,9 +22,19 @@ public class BrunoAuditRunner {
         try {
             BrunoCliExecutor brunoCliExecutor = new BrunoCliExecutor();
 
-            brunoCliExecutor.execute(
-                    BRUNO_COLLECTION_DIR,
-                    JSON_OUTPUT_PATH
+            BrunoExecutionResult executionResult =
+                    brunoCliExecutor.execute(
+                            BRUNO_COLLECTION_DIR,
+                            JSON_OUTPUT_PATH
+                    );
+            System.out.println(
+                    "Bruno exit code: "
+                            + executionResult.getExitCode()
+            );
+
+            System.out.println(
+                    "Relatório JSON gerado: "
+                            + executionResult.isReportGenerated()
             );
             ResultParser resultParser =
                     new BrunoResultParser();

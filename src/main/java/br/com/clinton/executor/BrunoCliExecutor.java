@@ -19,7 +19,7 @@ public class BrunoCliExecutor {
         this.bruExecutable = bruExecutable;
     }
 
-    public void execute(
+    public BrunoExecutionResult execute(
             String collectionDirStr,
             String outputPathStr
     ) throws IOException, InterruptedException {
@@ -72,12 +72,14 @@ public class BrunoCliExecutor {
         );
 
         processBuilder.inheritIO();
+        Process process = processBuilder.start();
 
-        Process process =
-                processBuilder.start();
+        int exitCode = process.waitFor();
 
-        int exitCode =
-                process.waitFor();
+        boolean reportGenerated =
+                outputFile.exists()
+                        && outputFile.isFile()
+                        && outputFile.length() > 0;
 
         if (exitCode != 0) {
             System.out.println(
@@ -87,5 +89,10 @@ public class BrunoCliExecutor {
                             + ")."
             );
         }
+
+        return new BrunoExecutionResult(
+                exitCode,
+                reportGenerated
+        );
     }
 }
