@@ -1,4 +1,6 @@
 package br.com.clinton.model;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RequestExecution {
 
@@ -14,6 +16,8 @@ public class RequestExecution {
     private Object responseBody;
 
     private boolean successful;
+
+    private List<AssertionResult> assertions = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -77,5 +81,13 @@ public class RequestExecution {
 
     public void setSuccessful(boolean successful) {
         this.successful = successful;
+    }
+
+    public List<AssertionResult> getAssertions() {
+        return assertions;
+    }
+
+    public void setAssertions(List<AssertionResult> assertions) {
+        this.assertions = assertions;
     }
 }

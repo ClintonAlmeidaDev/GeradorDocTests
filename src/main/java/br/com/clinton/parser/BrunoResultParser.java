@@ -5,6 +5,7 @@ import br.com.clinton.model.ExecutionSummary;
 import br.com.clinton.model.RequestExecution;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import br.com.clinton.model.AssertionResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,9 +59,13 @@ public class BrunoResultParser implements ResultParser {
         return auditReport;
     }
 
+
+
     private RequestExecution parseRequestExecution(
             JsonNode resultNode
     ) {
+
+
 
         JsonNode requestNode =
                 resultNode.path("request");
@@ -70,6 +75,11 @@ public class BrunoResultParser implements ResultParser {
 
         RequestExecution execution =
                 new RequestExecution();
+
+        List<AssertionResult> assertions =
+                parseAssertions(resultNode);
+
+        execution.setAssertions(assertions);
 
         execution.setName(
                 resultNode.path("name").asText("")
@@ -109,18 +119,30 @@ public class BrunoResultParser implements ResultParser {
             execution.setResponseBody(responseBody);
         }
 
-        JsonNode errorNode = resultNode.get("error");
+        JsonNode errorNode =
+                resultNode.get("error");
 
         boolean hasError =
-                errorNode != null && !errorNode.isNull();
+                errorNode != null
+                        && !errorNode.isNull();
 
-        boolean passed =
+        boolean requestPassed =
                 "pass".equalsIgnoreCase(
-                        resultNode.path("status").asText("")
+                        resultNode
+                                .path("status")
+                                .asText("")
                 );
 
+        boolean assertionsPassed =
+                assertions.stream()
+                        .allMatch(
+                                AssertionResult::isSuccessful
+                        );
+
         execution.setSuccessful(
-                passed && !hasError
+                requestPassed
+                        && !hasError
+                        && assertionsPassed
         );
 
         return execution;
@@ -139,13 +161,107 @@ public class BrunoResultParser implements ResultParser {
         int failedRequests =
                 totalRequests - successfulRequests;
 
+        int totalAssertions =
+                executions.stream()
+                        .mapToInt(
+                                execution ->
+                                        execution
+                                                .getAssertions()
+                                                .size()
+                        )
+                        .sum();
+
         ExecutionSummary summary =
                 new ExecutionSummary();
+
+        int successfulAssertions =
+                (int) executions.stream()
+                        .flatMap(
+                                execution ->
+                                        execution
+                                                .getAssertions()
+                                                .stream()
+                        )
+                        .filter(
+                                AssertionResult::isSuccessful
+                        )
+                        .count();
+
+        int failedAssertions =
+                totalAssertions
+                        - successfulAssertions;
 
         summary.setTotalRequests(totalRequests);
         summary.setSuccessfulRequests(successfulRequests);
         summary.setFailedRequests(failedRequests);
+        summary.setTotalAssertions(
+                totalAssertions
+        );
 
+        summary.setSuccessfulAssertions(
+                successfulAssertions
+        );
+
+        summary.setFailedAssertions(
+                failedAssertions
+        );
         return summary;
+    }
+
+    private List<AssertionResult> parseAssertions(
+            JsonNode resultNode
+    ) {
+
+        List<AssertionResult> assertions =
+                new ArrayList<>();
+
+        JsonNode assertionResultsNode =
+                resultNode.path("assertionResults");
+
+        if (!assertionResultsNode.isArray()) {
+            return assertions;
+        }
+
+        for (JsonNode assertionNode : assertionResultsNode) {
+
+            AssertionResult assertion =
+                    new AssertionResult();
+
+            assertion.setExpression(
+                    assertionNode
+                            .path("lhsExpr")
+                            .asText("")
+            );
+
+            assertion.setOperator(
+                    assertionNode
+                            .path("operator")
+                            .asText("")
+            );
+
+            assertion.setExpectedValue(
+                    assertionNode
+                            .path("rhsOperand")
+                            .asText("")
+            );
+
+            assertion.setErrorMessage(
+                    assertionNode
+                            .path("error")
+                            .asText("")
+            );
+
+            assertion.setSuccessful(
+                    "pass".equalsIgnoreCase(
+                            assertionNode
+                                    .path("status")
+                                    .asText("")
+                    )
+            );
+
+            assertions.add(assertion);
+        }
+
+        return assertions;
     }
 }

@@ -57,6 +57,27 @@ public class BrunoAuditRunner {
                             + auditReport.getSummary().getFailedRequests()
             );
 
+            System.out.println(
+                    "Assertions: "
+                            + auditReport
+                            .getSummary()
+                            .getTotalAssertions()
+            );
+
+            System.out.println(
+                    "Assertions aprovadas: "
+                            + auditReport
+                            .getSummary()
+                            .getSuccessfulAssertions()
+            );
+
+            System.out.println(
+                    "Assertions falhas: "
+                            + auditReport
+                            .getSummary()
+                            .getFailedAssertions()
+            );
+
             if (!auditReport.getExecutions().isEmpty()) {
 
                 RequestExecution first =
