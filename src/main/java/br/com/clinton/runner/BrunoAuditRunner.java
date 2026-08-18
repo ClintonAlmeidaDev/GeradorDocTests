@@ -18,22 +18,15 @@ import br.com.clinton.model.ReportMetadata;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import br.com.clinton.config.AuditConfigurationLoader;
+
 public class BrunoAuditRunner {
 
 
 
     public static void main(String[] args) {
-
         AuditConfiguration configuration =
-                new AuditConfiguration(
-                        "./src/test/resources/bruno-collection",
-                        "./target/bruno-results.json",
-                        "./Relatorio_Auditoria_Testes.pdf",
-                        "Minha Coleção Bruno",
-                        "LOCAL",
-                        "Java Automation Service",
-                        "SUA_EMPRESA"
-                );
+                AuditConfigurationLoader.load(args);
 
         try {
             BrunoCliExecutor brunoCliExecutor = new BrunoCliExecutor();
