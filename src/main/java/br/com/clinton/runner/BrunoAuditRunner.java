@@ -5,6 +5,7 @@ import br.com.clinton.parser.ResultParser;
 import br.com.clinton.model.AuditReport;
 import br.com.clinton.model.RequestExecution;
 import br.com.clinton.parser.BrunoResultParser;
+import br.com.clinton.config.AuditConfiguration;
 
 import br.com.clinton.executor.BrunoCliExecutor;
 import br.com.clinton.report.HtmlReportGenerator;
@@ -19,18 +20,28 @@ import java.time.format.DateTimeFormatter;
 
 public class BrunoAuditRunner {
 
-    private static final String BRUNO_COLLECTION_DIR = "./src/test/resources/bruno-collection";
-    private static final String JSON_OUTPUT_PATH = "./target/bruno-results.json";
-    private static final String PDF_OUTPUT_PATH = "./Relatorio_Auditoria_Testes.pdf";
+
 
     public static void main(String[] args) {
+
+        AuditConfiguration configuration =
+                new AuditConfiguration(
+                        "./src/test/resources/bruno-collection",
+                        "./target/bruno-results.json",
+                        "./Relatorio_Auditoria_Testes.pdf",
+                        "Minha Coleção Bruno",
+                        "LOCAL",
+                        "Java Automation Service",
+                        "SUA_EMPRESA"
+                );
+
         try {
             BrunoCliExecutor brunoCliExecutor = new BrunoCliExecutor();
 
             BrunoExecutionResult executionResult =
                     brunoCliExecutor.execute(
-                            BRUNO_COLLECTION_DIR,
-                            JSON_OUTPUT_PATH
+                            configuration.getCollectionPath(),
+                            configuration.getJsonOutputPath()
                     );
             System.out.println(
                     "Bruno exit code: "
@@ -45,11 +56,16 @@ public class BrunoAuditRunner {
                     new BrunoResultParser();
 
             AuditReport auditReport =
-                    resultParser.parse(JSON_OUTPUT_PATH);
+                    resultParser.parse(
+                            configuration.getJsonOutputPath()
+                    );
 
-            ReportMetadata metadata = new ReportMetadata();
+            ReportMetadata metadata =
+                    new ReportMetadata();
 
-            metadata.setCollectionName("Minha Coleção Bruno");
+            metadata.setCollectionName(
+                    configuration.getCollectionName()
+            );
 
             metadata.setExecutionDate(
                     LocalDateTime.now()
@@ -60,14 +76,19 @@ public class BrunoAuditRunner {
                             )
             );
 
-            metadata.setEnvironment("LOCAL");
+            metadata.setEnvironment(
+                    configuration.getEnvironment()
+            );
 
-            metadata.setExecutor("Java Automation Service");
+            metadata.setExecutor(
+                    configuration.getExecutor()
+            );
 
-            metadata.setCompanyName("SUA_EMPRESA");
+            metadata.setCompanyName(
+                    configuration.getCompanyName()
+            );
 
             auditReport.setMetadata(metadata);
-
             System.out.println(
                     "Requests normalizadas: "
                             + auditReport.getSummary().getTotalRequests()
@@ -126,9 +147,11 @@ public class BrunoAuditRunner {
                     htmlReportGenerator.generate(auditReport);
 
             System.out.println("Renderizando PDF de alta resolução com Playwright...");
-            AuditReportGenerator.generatePdfFromHtml(htmlContent, PDF_OUTPUT_PATH);
-
-            System.out.println("Processo concluído com sucesso! PDF gerado em: " + PDF_OUTPUT_PATH);
+            AuditReportGenerator.generatePdfFromHtml(
+                    htmlContent,
+                    configuration.getPdfOutputPath()
+            );
+            System.out.println("Processo concluído com sucesso! PDF gerado em: " + configuration.getPdfOutputPath());
 
         } catch (Exception e) {
             System.err.println("Falha na geração do relatório de auditoria.");
