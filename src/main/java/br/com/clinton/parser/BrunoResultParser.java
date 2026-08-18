@@ -108,6 +108,10 @@ public class BrunoResultParser implements ResultParser {
                 responseNode.path("responseTime").asLong(0)
         );
 
+        execution.setResponseSizeBytes(
+                responseNode.path("size").asLong(0)
+        );
+
         if (responseNode.has("data")
                 && !responseNode.get("data").isNull()) {
 

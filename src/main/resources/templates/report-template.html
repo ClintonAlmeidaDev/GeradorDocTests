@@ -533,29 +533,26 @@
     <!-- =========================
          DADOS DA RESPOSTA HTTP
          ========================= -->
-
     <table class="details-table">
 
         <tr>
-
-            <th>
-                HTTP Status
-            </th>
-
-            <th>
-                Tempo Resposta
-            </th>
-
+            <th>HTTP Status</th>
+            <th>Tempo de Resposta</th>
+            <th>Tamanho da Resposta</th>
         </tr>
 
         <tr>
 
-            <td th:text="${req.httpStatus}">
-                200
+            <td th:text="|${req.httpStatus} ${req.statusText}|">
+                200 OK
             </td>
 
-            <td th:text="${req.responseTimeMs + ' ms'}">
+            <td th:text="|${req.responseTimeMs} ms|">
                 120 ms
+            </td>
+
+            <td th:text="|${req.responseSizeBytes} bytes|">
+                292 bytes
             </td>
 
         </tr>

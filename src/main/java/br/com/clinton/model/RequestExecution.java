@@ -19,6 +19,8 @@ public class RequestExecution {
 
     private List<AssertionResult> assertions = new ArrayList<>();
 
+    private long responseSizeBytes;
+
     public String getName() {
         return name;
     }
@@ -89,5 +91,13 @@ public class RequestExecution {
 
     public void setAssertions(List<AssertionResult> assertions) {
         this.assertions = assertions;
+    }
+
+    public long getResponseSizeBytes() {
+        return responseSizeBytes;
+    }
+
+    public void setResponseSizeBytes(long responseSizeBytes) {
+        this.responseSizeBytes = responseSizeBytes;
     }
 }
