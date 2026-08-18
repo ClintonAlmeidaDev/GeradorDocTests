@@ -6,6 +6,15 @@ public class AuditReport {
 
     private List<RequestExecution> executions;
     private ExecutionSummary summary;
+    private ReportMetadata metadata;
+
+    public ReportMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(ReportMetadata metadata) {
+        this.metadata = metadata;
+    }
 
     public List<RequestExecution> getExecutions() {
         return executions;

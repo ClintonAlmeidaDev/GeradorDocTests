@@ -315,7 +315,7 @@
 
             <td>
                 <div class="company-logo"
-                     th:text="${companyName}">
+                     th:text="${metadata.companyName}">
                     SUA_EMPRESA
                 </div>
             </td>
@@ -351,7 +351,7 @@
             Coleção:
         </td>
 
-        <td th:text="${collectionName}">
+        <td th:text="${metadata.collectionName}">
             Nome Coleção
         </td>
 
@@ -359,7 +359,7 @@
             Data Execução:
         </td>
 
-        <td th:text="${executionDate}">
+        <td th:text="${metadata.executionDate}">
             00/00/0000
         </td>
 
@@ -371,7 +371,7 @@
             Ambiente:
         </td>
 
-        <td th:text="${environment}">
+        <td th:text="${metadata.environment}">
             Homologação
         </td>
 
@@ -379,7 +379,7 @@
             Executor:
         </td>
 
-        <td>
+        <td th:text="${metadata.executor}">
             Java Automation Service
         </td>
 

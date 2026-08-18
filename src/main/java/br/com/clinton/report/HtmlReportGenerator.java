@@ -17,6 +17,10 @@ public class HtmlReportGenerator {
 
         context.setVariable("results", auditReport.getExecutions());
         context.setVariable("summary", auditReport.getSummary());
+        context.setVariable(
+                "metadata",
+                auditReport.getMetadata()
+        );
 
         ClassLoaderTemplateResolver resolver =
                 new ClassLoaderTemplateResolver();

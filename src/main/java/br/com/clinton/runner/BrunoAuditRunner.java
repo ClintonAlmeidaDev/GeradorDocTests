@@ -12,6 +12,11 @@ import br.com.clinton.report.HtmlReportGenerator;
 import br.com.clinton.auditor.AuditReportGenerator;
 import br.com.clinton.executor.BrunoExecutionResult;
 
+import br.com.clinton.model.ReportMetadata;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class BrunoAuditRunner {
 
     private static final String BRUNO_COLLECTION_DIR = "./src/test/resources/bruno-collection";
@@ -41,6 +46,27 @@ public class BrunoAuditRunner {
 
             AuditReport auditReport =
                     resultParser.parse(JSON_OUTPUT_PATH);
+
+            ReportMetadata metadata = new ReportMetadata();
+
+            metadata.setCollectionName("Minha Coleção Bruno");
+
+            metadata.setExecutionDate(
+                    LocalDateTime.now()
+                            .format(
+                                    DateTimeFormatter.ofPattern(
+                                            "dd/MM/yyyy HH:mm:ss"
+                                    )
+                            )
+            );
+
+            metadata.setEnvironment("LOCAL");
+
+            metadata.setExecutor("Java Automation Service");
+
+            metadata.setCompanyName("SUA_EMPRESA");
+
+            auditReport.setMetadata(metadata);
 
             System.out.println(
                     "Requests normalizadas: "
