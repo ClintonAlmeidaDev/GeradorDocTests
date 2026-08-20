@@ -6,41 +6,65 @@ import java.util.Map;
 
 public class BrunoCliExecutor {
 
-    private static final String BRU_EXECUTABLE =
-            "/home/clintonalmeida/.nvm/versions/node/v22.23.2/bin/bru";
+    private final String bruExecutable;
 
-    private static final String NODE_BIN_PATH =
-            "/home/clintonalmeida/.nvm/versions/node/v22.23.2/bin";
+    public BrunoCliExecutor() {
+        this(
+                System.getenv()
+                        .getOrDefault("BRU_EXECUTABLE", "bru")
+        );
+    }
 
-    public void execute(
+    public BrunoCliExecutor(String bruExecutable) {
+        this.bruExecutable = bruExecutable;
+    }
+
+    public BrunoExecutionResult execute(
             String collectionDirStr,
             String outputPathStr
     ) throws IOException, InterruptedException {
 
         System.out.println("Executando coleção Bruno via CLI...");
 
-        File collectionDir = new File(collectionDirStr).getAbsoluteFile();
-        File outputFile = new File(outputPathStr).getAbsoluteFile();
+        File collectionDir =
+                new File(collectionDirStr).getAbsoluteFile();
+
+        File outputFile =
+                new File(outputPathStr).getAbsoluteFile();
 
         if (outputFile.getParentFile() != null) {
             outputFile.getParentFile().mkdirs();
         }
 
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                BRU_EXECUTABLE,
-                "run",
-                "--reporter-json",
-                outputFile.getAbsolutePath()
-        );
+        ProcessBuilder processBuilder =
+                new ProcessBuilder(
+                        bruExecutable,
+                        "run",
+                        "--reporter-json",
+                        outputFile.getAbsolutePath()
+                );
 
         processBuilder.directory(collectionDir);
 
-        Map<String, String> env = processBuilder.environment();
+        Map<String, String> env =
+                processBuilder.environment();
 
-        env.put(
-                "PATH",
-                NODE_BIN_PATH + File.pathSeparator + env.get("PATH")
-        );
+        File bruFile =
+                new File(bruExecutable);
+
+        if (bruFile.isAbsolute()
+                && bruFile.getParentFile() != null) {
+
+            String currentPath =
+                    env.getOrDefault("PATH", "");
+
+            env.put(
+                    "PATH",
+                    bruFile.getParentFile().getAbsolutePath()
+                            + File.pathSeparator
+                            + currentPath
+            );
+        }
 
         env.put(
                 "NODE_OPTIONS",
@@ -48,16 +72,27 @@ public class BrunoCliExecutor {
         );
 
         processBuilder.inheritIO();
-
         Process process = processBuilder.start();
 
         int exitCode = process.waitFor();
 
+        boolean reportGenerated =
+                outputFile.exists()
+                        && outputFile.isFile()
+                        && outputFile.length() > 0;
+
         if (exitCode != 0) {
             System.out.println(
-                    "Avisos ou falhas detectadas durante os testes do Bruno " +
-                            "(Exit code: " + exitCode + ")."
+                    "Avisos ou falhas detectadas durante os testes do Bruno "
+                            + "(Exit code: "
+                            + exitCode
+                            + ")."
             );
         }
+
+        return new BrunoExecutionResult(
+                exitCode,
+                reportGenerated
+        );
     }
 }

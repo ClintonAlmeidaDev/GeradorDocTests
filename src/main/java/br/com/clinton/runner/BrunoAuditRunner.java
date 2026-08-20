@@ -1,44 +1,150 @@
 package br.com.clinton.runner;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
-import com.microsoft.playwright.options.WaitUntilState;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import br.com.clinton.executor.BrunoCliExecutor;
+import br.com.clinton.parser.ResultParser;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
+import br.com.clinton.model.AuditReport;
+import br.com.clinton.model.RequestExecution;
+import br.com.clinton.parser.BrunoResultParser;
+import br.com.clinton.config.AuditConfiguration;
+
+import br.com.clinton.executor.BrunoCliExecutor;
+import br.com.clinton.report.HtmlReportGenerator;
+
+import br.com.clinton.auditor.AuditReportGenerator;
+import br.com.clinton.executor.BrunoExecutionResult;
+
+import br.com.clinton.model.ReportMetadata;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import br.com.clinton.config.AuditConfigurationLoader;
 
 public class BrunoAuditRunner {
 
-    private static final String BRUNO_COLLECTION_DIR = "./src/test/resources/bruno-collection";
-    private static final String JSON_OUTPUT_PATH = "./target/bruno-results.json";
-    private static final String PDF_OUTPUT_PATH = "./Relatorio_Auditoria_Testes.pdf";
+
 
     public static void main(String[] args) {
+        AuditConfiguration configuration =
+                AuditConfigurationLoader.load(args);
+
         try {
             BrunoCliExecutor brunoCliExecutor = new BrunoCliExecutor();
 
-            brunoCliExecutor.execute(
-                    BRUNO_COLLECTION_DIR,
-                    JSON_OUTPUT_PATH
+            BrunoExecutionResult executionResult =
+                    brunoCliExecutor.execute(
+                            configuration.getCollectionPath(),
+                            configuration.getJsonOutputPath()
+                    );
+            System.out.println(
+                    "Bruno exit code: "
+                            + executionResult.getExitCode()
             );
-            System.out.println("Formatando template HTML do relatório...");
-            String htmlContent = generateHtmlReport(JSON_OUTPUT_PATH);
+
+            System.out.println(
+                    "Relatório JSON gerado: "
+                            + executionResult.isReportGenerated()
+            );
+            ResultParser resultParser =
+                    new BrunoResultParser();
+
+            AuditReport auditReport =
+                    resultParser.parse(
+                            configuration.getJsonOutputPath()
+                    );
+
+            ReportMetadata metadata =
+                    new ReportMetadata();
+
+            metadata.setCollectionName(
+                    configuration.getCollectionName()
+            );
+
+            metadata.setExecutionDate(
+                    LocalDateTime.now()
+                            .format(
+                                    DateTimeFormatter.ofPattern(
+                                            "dd/MM/yyyy HH:mm:ss"
+                                    )
+                            )
+            );
+
+            metadata.setEnvironment(
+                    configuration.getEnvironment()
+            );
+
+            metadata.setExecutor(
+                    configuration.getExecutor()
+            );
+
+            metadata.setCompanyName(
+                    configuration.getCompanyName()
+            );
+
+            auditReport.setMetadata(metadata);
+            System.out.println(
+                    "Requests normalizadas: "
+                            + auditReport.getSummary().getTotalRequests()
+            );
+
+            System.out.println(
+                    "Requests com sucesso: "
+                            + auditReport.getSummary().getSuccessfulRequests()
+            );
+
+            System.out.println(
+                    "Requests com falha: "
+                            + auditReport.getSummary().getFailedRequests()
+            );
+
+            System.out.println(
+                    "Assertions: "
+                            + auditReport
+                            .getSummary()
+                            .getTotalAssertions()
+            );
+
+            System.out.println(
+                    "Assertions aprovadas: "
+                            + auditReport
+                            .getSummary()
+                            .getSuccessfulAssertions()
+            );
+
+            System.out.println(
+                    "Assertions falhas: "
+                            + auditReport
+                            .getSummary()
+                            .getFailedAssertions()
+            );
+
+            if (!auditReport.getExecutions().isEmpty()) {
+
+                RequestExecution first =
+                        auditReport.getExecutions().get(0);
+
+                System.out.println(
+                        "Primeira execução normalizada: "
+                                + first.getMethod()
+                                + " "
+                                + first.getUrl()
+                                + " -> HTTP "
+                                + first.getHttpStatus()
+                );
+            }
+
+            HtmlReportGenerator htmlReportGenerator =
+                    new HtmlReportGenerator();
+
+            String htmlContent =
+                    htmlReportGenerator.generate(auditReport);
 
             System.out.println("Renderizando PDF de alta resolução com Playwright...");
-            generatePdfFromHtml(htmlContent, PDF_OUTPUT_PATH);
-
-            System.out.println("Processo concluído com sucesso! PDF gerado em: " + PDF_OUTPUT_PATH);
+            AuditReportGenerator.generatePdfFromHtml(
+                    htmlContent,
+                    configuration.getPdfOutputPath()
+            );
+            System.out.println("Processo concluído com sucesso! PDF gerado em: " + configuration.getPdfOutputPath());
 
         } catch (Exception e) {
             System.err.println("Falha na geração do relatório de auditoria.");
@@ -46,59 +152,4 @@ public class BrunoAuditRunner {
         }
     }
 
-    private static String generateHtmlReport(String jsonPath) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        JsonNode rootNode = mapper.readTree(new File(jsonPath));
-
-        if (!rootNode.isArray() || rootNode.isEmpty()) {
-            throw new IllegalStateException(
-                    "JSON do Bruno não possui execuções."
-            );
-        }
-
-        JsonNode executionNode = rootNode.get(0);
-
-        List<Map<String, Object>> results = mapper.convertValue(
-                executionNode.path("results"),
-                new TypeReference<List<Map<String, Object>>>() {}
-        );
-
-        Map<String, Object> summary = mapper.convertValue(
-                executionNode.path("summary"),
-                new TypeReference<Map<String, Object>>() {}
-        );
-
-        Context context = new Context();
-
-        context.setVariable("results", results);
-        context.setVariable("summary", summary);
-
-        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
-        resolver.setPrefix("templates/");
-        resolver.setSuffix(".html");
-        resolver.setTemplateMode("HTML");
-        resolver.setCharacterEncoding("UTF-8");
-
-        TemplateEngine templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(resolver);
-
-        return templateEngine.process("report-template", context);
-    }
-
-    private static void generatePdfFromHtml(String htmlContent, String outputPath) {
-        try (Playwright playwright = Playwright.create()) {
-            Browser browser = playwright.chromium().launch();
-            Page page = browser.newPage();
-
-            page.setContent(htmlContent, new Page.SetContentOptions().setWaitUntil(WaitUntilState.NETWORKIDLE));
-
-            page.pdf(new Page.PdfOptions()
-                    .setPath(Paths.get(outputPath))
-                    .setPrintBackground(true)
-            );
-
-            browser.close();
-        }
-    }
 }

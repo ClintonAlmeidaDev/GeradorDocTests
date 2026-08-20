@@ -15,7 +15,8 @@ http:
       {
         "title": "Teste Bruno",
         "body": "Criando um recurso para testar a collection",
-        "userId": 1
+        "userId": 1,
+        "clientSecret": "SEGREDO_SUPER_SECRETO"
       }
   auth: inherit
 

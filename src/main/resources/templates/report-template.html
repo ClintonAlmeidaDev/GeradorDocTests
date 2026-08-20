@@ -1,92 +1,694 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+
 <head>
     <meta charset="UTF-8"/>
+
     <style>
-        @page { size: A4; margin: 15mm 12mm; background-color: #f8fafc; }
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #1e293b; font-size: 10pt; }
-        .header-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .header-table { width: 100%; border-collapse: collapse; }
-        .company-logo { font-size: 20pt; font-weight: bold; color: #38bdf8; }
-        .report-title { text-align: right; }
-        .report-title h1 { margin: 0; font-size: 16pt; color: #fff; text-transform: uppercase; }
 
-        .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; }
-        .meta-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 9pt; }
-        .meta-table td.label { font-weight: bold; color: #475569; width: 20%; background-color: #f8fafc; }
+        @page {
+            size: A4;
+            margin: 15mm 12mm;
+            background-color: #f8fafc;
+        }
 
-        .request-card { background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 15px; margin-bottom: 20px; page-break-inside: avoid; }
-        .badge-method { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 8pt; color: #fff; }
-        .method-POST { background-color: #16a34a; }
-        .method-GET { background-color: #2563eb; }
-        .method-PUT { background-color: #d97706; }
-        .method-DELETE { background-color: #dc2626; }
-        .badge-status { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 8pt; }
-        .status-pass { background-color: #dcfce7; color: #15803d; }
-        .status-fail { background-color: #fee2e2; color: #b91c1c; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            font-size: 10pt;
+        }
 
-        .details-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        .details-table th, .details-table td { border: 1px solid #e2e8f0; padding: 6px 10px; font-size: 8.5pt; text-align: left; }
-        .details-table th { background-color: #f1f5f9; color: #475569; }
+        /* =========================
+           CABEÇALHO
+           ========================= */
 
-        .code-box { background-color: #0f172a; color: #f8fafc; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 8pt; white-space: pre-wrap; word-break: break-all; margin: 0; }
+        .header-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .company-logo {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+
+        .report-title {
+            text-align: right;
+        }
+
+        .report-title h1 {
+            margin: 0;
+            font-size: 16pt;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .report-title p {
+            margin-bottom: 0;
+        }
+
+        /* =========================
+           METADADOS
+           ========================= */
+
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .meta-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 9pt;
+        }
+
+        .meta-table td.label {
+            font-weight: bold;
+            color: #475569;
+            width: 20%;
+            background-color: #f8fafc;
+        }
+
+        /* =========================
+           RESUMO
+           ========================= */
+
+        .summary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+            margin: 0 -10px 20px -10px;
+        }
+
+        .summary-card {
+            width: 25%;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 8pt;
+            font-weight: bold;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .summary-value {
+            margin-top: 6px;
+            font-size: 18pt;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .summary-value-success {
+            color: #15803d;
+        }
+
+        .summary-value-fail {
+            color: #b91c1c;
+        }
+
+        .section-title {
+            margin: 0 0 12px 0;
+            padding-left: 8px;
+            border-left: 4px solid #2563eb;
+            font-size: 12pt;
+            color: #1e293b;
+        }
+
+        /* =========================
+           REQUEST
+           ========================= */
+
+        .request-card {
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+
+        .request-header {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .badge-method {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 8pt;
+            color: #fff;
+        }
+
+        .method-POST {
+            background-color: #16a34a;
+        }
+
+        .method-GET {
+            background-color: #2563eb;
+        }
+
+        .method-PUT {
+            background-color: #d97706;
+        }
+
+        .method-DELETE {
+            background-color: #dc2626;
+        }
+
+        .badge-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+
+        .status-pass {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-fail {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* =========================
+           DETALHES HTTP
+           ========================= */
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .details-table th,
+        .details-table td {
+            border: 1px solid #e2e8f0;
+            padding: 6px 10px;
+            font-size: 8.5pt;
+            text-align: left;
+        }
+
+        .details-table th {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        /* =========================
+           ASSERTIONS
+           ========================= */
+
+        .assertion-section {
+            margin-top: 14px;
+            margin-bottom: 14px;
+        }
+
+        .assertion-section h4 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #334155;
+        }
+
+        .assertion-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            margin-bottom: 10px;
+        }
+
+        .assertion-table th,
+        .assertion-table td {
+            border: 1px solid #d9dee7;
+            padding: 8px 10px;
+            text-align: left;
+            font-size: 8.5pt;
+        }
+
+        .assertion-table th {
+            background: #f1f4f8;
+            color: #475569;
+        }
+
+        .assertion-pass {
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .assertion-fail {
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .assertion-error {
+            margin-top: 6px;
+            margin-bottom: 12px;
+            padding: 8px 10px;
+            border-left: 3px solid #c62828;
+            background: #fff5f5;
+            font-size: 8.5pt;
+        }
+
+        /* =========================
+           PAYLOAD
+           ========================= */
+
+        .payload-title {
+            font-weight: bold;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+
+        .code-box {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 8pt;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 0;
+        }
+
     </style>
 </head>
+
 <body>
+
+<!-- =========================
+     CABEÇALHO DO RELATÓRIO
+     ========================= -->
+
 <div class="header-banner">
+
     <table class="header-table">
+
         <tr>
-            <td><div class="company-logo" th:text="${companyName}">SUA_EMPRESA</div></td>
-            <td class="report-title">
-                <h1>Evidência de Teste de API</h1>
-                <p>Relatório de Auditoria &amp; Conformidade</p>
+
+            <td>
+                <div class="company-logo"
+                     th:text="${metadata.companyName}">
+                    SUA_EMPRESA
+                </div>
             </td>
+
+            <td class="report-title">
+
+                <h1>
+                    Evidência de Teste de API
+                </h1>
+
+                <p>
+                    Relatório Oficial de Auditoria &amp; Conformidade
+                </p>
+
+            </td>
+
         </tr>
+
     </table>
+
 </div>
+
+
+<!-- =========================
+     METADADOS
+     ========================= -->
 
 <table class="meta-table">
+
     <tr>
-        <td class="label">Coleção:</td>
-        <td th:text="${collectionName}">Nome Coleção</td>
-        <td class="label">Data Execução:</td>
-        <td th:text="${executionDate}">00/00/0000</td>
+
+        <td class="label">
+            Coleção:
+        </td>
+
+        <td th:text="${metadata.collectionName}">
+            Nome Coleção
+        </td>
+
+        <td class="label">
+            Data Execução:
+        </td>
+
+        <td th:text="${metadata.executionDate}">
+            00/00/0000
+        </td>
+
     </tr>
+
     <tr>
-        <td class="label">Ambiente:</td>
-        <td th:text="${environment}">Homologação</td>
-        <td class="label">Executor:</td>
-        <td>Java Automation Service</td>
+
+        <td class="label">
+            Ambiente:
+        </td>
+
+        <td th:text="${metadata.environment}">
+            Homologação
+        </td>
+
+        <td class="label">
+            Executado por:
+        </td>
+
+        <td th:text="${metadata.executor}">
+            Java Automation Service
+        </td>
+
     </tr>
+
 </table>
 
-<div class="request-card" th:each="req : ${results}">
-    <table style="width: 100%;">
+
+<!-- =========================
+     RESUMO DA EXECUÇÃO
+     ========================= -->
+
+<table class="summary-table">
+
+    <tr>
+
+        <!-- Total de Requests -->
+        <td class="summary-card">
+
+            <div class="summary-label">
+                Total Requisições
+            </div>
+
+            <div class="summary-value"
+                 th:text="${summary.totalRequests}">
+                0
+            </div>
+
+        </td>
+
+
+        <!-- Total de Assertions -->
+        <td class="summary-card">
+
+            <div class="summary-label">
+                Asserções
+            </div>
+
+            <div class="summary-value"
+                 th:text="${summary.totalAssertions}">
+                0
+            </div>
+
+        </td>
+
+
+        <!-- Assertions aprovadas -->
+        <td class="summary-card">
+
+            <div class="summary-label">
+                Aprovadas
+            </div>
+
+            <div class="summary-value summary-value-success"
+                 th:text="${summary.successfulAssertions}">
+                0
+            </div>
+
+        </td>
+
+
+        <!-- Assertions com falha -->
+        <td class="summary-card">
+
+            <div class="summary-label">
+                Falhas
+            </div>
+
+            <div class="summary-value summary-value-fail"
+                 th:text="${summary.failedAssertions}">
+                0
+            </div>
+
+        </td>
+
+    </tr>
+
+</table>
+
+
+<!-- =========================
+     TÍTULO DO DETALHAMENTO
+     ========================= -->
+
+<h2 class="section-title">
+    Detalhamento das Evidências de Execução
+</h2>
+
+
+<!-- =========================
+     LISTA DE REQUESTS
+     ========================= -->
+
+<div class="request-card"
+     th:each="req : ${results}">
+
+
+    <!-- =========================
+         CABEÇALHO DA REQUEST
+         ========================= -->
+
+    <table class="request-header">
+
         <tr>
+
+            <!-- Método HTTP -->
             <td style="width: 70px;">
-                <span th:class="'badge-method method-' + ${req.request.method}" th:text="${req.request.method}">POST</span>
+
+                <span
+                        th:class="'badge-method method-' + ${req.method}"
+                        th:text="${req.method}">
+                    GET
+                </span>
+
             </td>
-            <td><strong th:text="${req.request.url}">https://api.exemplo.com</strong></td>
-            <td style="text-align: right;">
-                    <span th:class="${req.error != null ? 'badge-status status-fail' : 'badge-status status-pass'}"
-                          th:text="${req.error != null ? 'FALHA' : 'SUCESSO'}">SUCESSO</span>
+
+
+            <!-- URL -->
+            <td>
+
+                <strong th:text="${req.url}">
+                    https://api.exemplo.com
+                </strong>
+
             </td>
+
+
+            <!-- Resultado geral -->
+            <td style="text-align: right; width: 90px;">
+
+                <span
+                        th:class="${req.successful
+                                ? 'badge-status status-pass'
+                                : 'badge-status status-fail'}"
+
+                        th:text="${req.successful
+                                ? 'SUCESSO'
+                                : 'FALHA'}">
+
+                    SUCESSO
+
+                </span>
+
+            </td>
+
         </tr>
+
     </table>
 
+
+    <!-- =========================
+         DADOS DA RESPOSTA HTTP
+         ========================= -->
     <table class="details-table">
+
         <tr>
             <th>HTTP Status</th>
-            <th>Tempo Resposta</th>
+            <th>Tempo de Resposta</th>
+            <th>Tamanho da Resposta</th>
         </tr>
+
         <tr>
-            <td th:text="${req.response.status}">200</td>
-            <td th:text="${req.response.responseTime + ' ms'}">120 ms</td>
+
+            <td th:text="|${req.httpStatus} ${req.statusText}|">
+                200 OK
+            </td>
+
+            <td th:text="|${req.responseTimeMs} ms|">
+                120 ms
+            </td>
+
+            <td th:text="|${req.responseSizeBytes} bytes|">
+                292 bytes
+            </td>
+
         </tr>
+
     </table>
 
-    <div style="font-weight: bold; margin-top: 8px;">Payload Resposta (Evidência):</div>
-    <pre class="code-box" th:text="${req.response.data}">{}</pre>
+
+    <!-- =========================
+         ASSERTIONS
+         ========================= -->
+
+    <div
+            class="assertion-section"
+            th:if="${req.assertions != null and !req.assertions.isEmpty()}">
+
+        <h4>
+            Validação das Asserções (Assertions)
+        </h4>
+
+        <table class="assertion-table">
+
+            <thead>
+
+            <tr>
+
+                <th>
+                    Regra de Asserção
+                </th>
+
+                <th style="width: 100px;">
+                    Resultado
+                </th>
+
+            </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            <tr th:each="assertion : ${req.assertions}">
+
+                <td>
+
+                    <span th:text="${assertion.expression}">
+                        res.status
+                    </span>
+
+                    <span th:text="${assertion.operator}">
+                        eq
+                    </span>
+
+                    <span th:text="${assertion.expectedValue}">
+                        200
+                    </span>
+
+                </td>
+
+
+                <td>
+
+                    <span
+                            th:class="${assertion.successful
+                                    ? 'assertion-pass'
+                                    : 'assertion-fail'}"
+
+                            th:text="${assertion.successful
+                                    ? 'PASS'
+                                    : 'FAIL'}">
+
+                        PASS
+
+                    </span>
+
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+
+        <!-- Detalhe de assertions com falha -->
+        <div
+                class="assertion-error"
+                th:each="assertion : ${req.assertions}"
+                th:if="${!assertion.successful
+                        and assertion.errorMessage != null
+                        and !assertion.errorMessage.isEmpty()}">
+
+            <strong>
+                Detalhe:
+            </strong>
+
+            <span th:text="${assertion.errorMessage}">
+                expected 200 to equal 201
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         REQUEST BODY
+         Só aparece quando existir
+         ========================= -->
+
+    <div th:if="${req.requestBody != null}">
+
+        <div class="payload-title">
+            Payload Enviado (Request Body):
+        </div>
+
+        <pre
+                class="code-box"
+                th:text="${jsonFormatter.format(req.requestBody)}">{}</pre>
+
+    </div>
+
+
+    <!-- =========================
+         RESPONSE BODY
+         ========================= -->
+
+    <div class="payload-title">
+        Payload Recebido (Response Body):
+    </div>
+
+    <pre
+            class="code-box"
+            th:text="${jsonFormatter.format(req.responseBody)}">{}</pre>
+
 </div>
+
 </body>
+
 </html>

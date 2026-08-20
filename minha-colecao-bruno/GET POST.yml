@@ -8,6 +8,12 @@ http:
   url: https://jsonplaceholder.typicode.com/posts/1
   auth: inherit
 
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "201"
+
 settings:
   encodeUrl: false
   timeout: 0
