@@ -13,6 +13,8 @@ public class RequestExecution {
 
     private long responseTimeMs;
 
+    private Object requestBody;
+
     private Object responseBody;
 
     private boolean successful;
@@ -67,6 +69,14 @@ public class RequestExecution {
 
     public void setResponseTimeMs(long responseTimeMs) {
         this.responseTimeMs = responseTimeMs;
+    }
+
+    public Object getRequestBody() {
+        return requestBody;
+    }
+
+    public void setRequestBody(Object requestBody) {
+        this.requestBody = requestBody;
     }
 
     public Object getResponseBody() {

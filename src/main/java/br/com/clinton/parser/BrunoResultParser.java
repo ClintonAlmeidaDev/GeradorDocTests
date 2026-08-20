@@ -73,8 +73,12 @@ public class BrunoResultParser implements ResultParser {
         JsonNode responseNode =
                 resultNode.path("response");
 
+
+
         RequestExecution execution =
                 new RequestExecution();
+
+
 
         List<AssertionResult> assertions =
                 parseAssertions(resultNode);
@@ -94,6 +98,10 @@ public class BrunoResultParser implements ResultParser {
 
         execution.setUrl(
                 requestNode.path("url").asText("")
+        );
+
+        execution.setRequestBody(
+                parseRequestBody(requestNode)
         );
 
         execution.setHttpStatus(
@@ -150,6 +158,42 @@ public class BrunoResultParser implements ResultParser {
         );
 
         return execution;
+    }
+
+    private Object parseRequestBody(JsonNode requestNode) {
+
+        JsonNode dataNode =
+                requestNode.get("data");
+
+        if (dataNode == null || dataNode.isNull()) {
+            return null;
+        }
+
+        if (dataNode.isTextual()) {
+
+            String data =
+                    dataNode.asText();
+
+            if (data.isBlank()) {
+                return null;
+            }
+
+            try {
+                return objectMapper.readValue(
+                        data,
+                        Object.class
+                );
+
+            } catch (Exception e) {
+
+                return data;
+            }
+        }
+
+        return objectMapper.convertValue(
+                dataNode,
+                Object.class
+        );
     }
 
     private ExecutionSummary createSummary(

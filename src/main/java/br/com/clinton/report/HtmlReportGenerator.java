@@ -14,12 +14,18 @@ public class HtmlReportGenerator {
 
 
         Context context = new Context();
+        JsonPayloadFormatter jsonFormatter =
+                new JsonPayloadFormatter();
 
         context.setVariable("results", auditReport.getExecutions());
         context.setVariable("summary", auditReport.getSummary());
         context.setVariable(
                 "metadata",
                 auditReport.getMetadata()
+        );
+        context.setVariable(
+                "jsonFormatter",
+                jsonFormatter
         );
 
         ClassLoaderTemplateResolver resolver =

@@ -658,16 +658,34 @@
 
 
     <!-- =========================
+         REQUEST BODY
+         Só aparece quando existir
+         ========================= -->
+
+    <div th:if="${req.requestBody != null}">
+
+        <div class="payload-title">
+            Payload Enviado (Request Body):
+        </div>
+
+        <pre
+                class="code-box"
+                th:text="${jsonFormatter.format(req.requestBody)}">{}</pre>
+
+    </div>
+
+
+    <!-- =========================
          RESPONSE BODY
          ========================= -->
 
     <div class="payload-title">
-        Payload Resposta (Evidência):
+        Payload Recebido (Response Body):
     </div>
 
     <pre
             class="code-box"
-            th:text="${req.responseBody}">{}</pre>
+            th:text="${jsonFormatter.format(req.responseBody)}">{}</pre>
 
 </div>
 
