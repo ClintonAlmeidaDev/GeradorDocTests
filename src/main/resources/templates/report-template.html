@@ -8,7 +8,7 @@
 
         @page {
             size: A4;
-            margin: 15mm 12mm;
+            margin: 15mm 10mm 20mm;
             background-color: #f8fafc;
         }
 
@@ -144,9 +144,12 @@
             border-radius: 6px;
             padding: 15px;
             margin-bottom: 20px;
-            page-break-inside: avoid;
+            break-inside: auto;
         }
 
+        tr { break-inside: avoid; }
+        h2, h4, .payload-title { break-after: avoid; }
+        td { overflow-wrap: anywhere; }
         .request-header {
             width: 100%;
             border-collapse: collapse;
@@ -392,6 +395,10 @@
      RESUMO DA EXECUÇÃO
      ========================= -->
 
+<h2 class="section-title">Rastreabilidade da Execução</h2>
+<table class="meta-table"><tr th:each="entry : ${metadata.traceability}"><td class="label" th:text="${entry.key}"></td><td th:text="${entry.value}"></td></tr></table>
+<p th:text="|Requisições: ${summary.successfulRequests} aprovadas / ${summary.failedRequests} falhas|"></p>
+<p th:if="${executionFailed}" class="assertion-error">O executor informou falha global. Consulte as evidências e os scripts da collection.</p>
 <table class="summary-table">
 
     <tr>
@@ -481,6 +488,8 @@
          CABEÇALHO DA REQUEST
          ========================= -->
 
+    <h4 th:text="${req.name}"></h4>
+    <p class="assertion-error" th:if="${req.technicalError != null and !req.technicalError.isEmpty()}" th:text="${req.technicalError}"></p>
     <table class="request-header">
 
         <tr>
@@ -621,7 +630,7 @@
 
                             th:text="${assertion.successful
                                     ? 'PASS'
-                                    : 'FAIL'}">
+                                    : (assertion.skipped ? 'SKIPPED' : 'FAIL')}">
 
                         PASS
 
@@ -662,6 +671,8 @@
          Só aparece quando existir
          ========================= -->
 
+    <div th:if="${req.requestHeaders != null}"><div class="payload-title">Headers enviados</div><pre class="code-box" th:text="${jsonFormatter.format(req.requestHeaders)}"></pre></div>
+    <div th:if="${req.responseHeaders != null}"><div class="payload-title">Headers recebidos</div><pre class="code-box" th:text="${jsonFormatter.format(req.responseHeaders)}"></pre></div>
     <div th:if="${req.requestBody != null}">
 
         <div class="payload-title">

@@ -1,6 +1,15 @@
 package br.com.clinton.model;
 
 public class AssertionResult {
+    private boolean skipped;
+
+    public boolean isSkipped() {
+        return skipped;
+    }
+
+    public void setSkipped(boolean value) {
+        this.skipped = value;
+    }
 
     private String expression;
     private String operator;

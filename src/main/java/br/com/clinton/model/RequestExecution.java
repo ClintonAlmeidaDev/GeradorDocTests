@@ -1,8 +1,38 @@
 package br.com.clinton.model;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class RequestExecution {
+    private String technicalError;
+
+    public String getTechnicalError() {
+        return technicalError;
+    }
+
+    public void setTechnicalError(String value) {
+        this.technicalError = value;
+    }
+
+    private Object requestHeaders;
+
+    public Object getRequestHeaders() {
+        return requestHeaders;
+    }
+
+    public void setRequestHeaders(Object value) {
+        this.requestHeaders = value;
+    }
+
+    private Object responseHeaders;
+
+    public Object getResponseHeaders() {
+        return responseHeaders;
+    }
+
+    public void setResponseHeaders(Object value) {
+        this.responseHeaders = value;
+    }
 
     private String name;
     private String method;

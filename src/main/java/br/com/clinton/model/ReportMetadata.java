@@ -1,6 +1,15 @@
 package br.com.clinton.model;
 
 public class ReportMetadata {
+    private java.util.Map<String, String> traceability = new java.util.LinkedHashMap<>();
+
+    public java.util.Map<String, String> getTraceability() {
+        return traceability;
+    }
+
+    public void setTraceability(java.util.Map<String, String> value) {
+        this.traceability = value;
+    }
 
     private String collectionName;
     private String executionDate;

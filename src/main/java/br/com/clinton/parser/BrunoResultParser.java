@@ -1,315 +1,69 @@
 package br.com.clinton.parser;
 
-import br.com.clinton.model.AuditReport;
-import br.com.clinton.model.ExecutionSummary;
-import br.com.clinton.model.RequestExecution;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import br.com.clinton.model.AssertionResult;
+import br.com.clinton.model.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.io.*;
+import java.util.*;
 
 public class BrunoResultParser implements ResultParser {
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     @Override
-    public AuditReport parse(String jsonPath) throws IOException {
-
-        JsonNode rootNode = objectMapper.readTree(
-                new File(jsonPath)
-        );
-
-        if (!rootNode.isArray() || rootNode.isEmpty()) {
-            throw new IllegalStateException(
-                    "JSON do Bruno não possui execuções."
-            );
+    public AuditReport parse(String path) throws IOException {
+        JsonNode root = ParserSupport.JSON.readTree(new File(path));
+        if (root == null || !root.isArray())
+            throw new IllegalArgumentException("JSON Bruno deve ter raiz array.");
+        List<RequestExecution> requests = new ArrayList<>();
+        for (JsonNode iteration : root) {
+            if (!iteration.path("results").isArray())
+                throw new IllegalArgumentException("Bruno: results ausente.");
+            for (JsonNode result : iteration.path("results")) requests.add(parseRequest(result));
         }
-
-        JsonNode executionNode = rootNode.get(0);
-
-        JsonNode resultsNode = executionNode.path("results");
-
-        if (!resultsNode.isArray()) {
-            throw new IllegalStateException(
-                    "JSON do Bruno não possui uma lista de resultados."
-            );
-        }
-
-        List<RequestExecution> executions = new ArrayList<>();
-
-        for (JsonNode resultNode : resultsNode) {
-            executions.add(
-                    parseRequestExecution(resultNode)
-            );
-        }
-
-        ExecutionSummary summary =
-                createSummary(executions);
-
-        AuditReport auditReport = new AuditReport();
-
-        auditReport.setExecutions(executions);
-        auditReport.setSummary(summary);
-
-        return auditReport;
+        return ParserSupport.report(requests);
     }
 
-
-
-    private RequestExecution parseRequestExecution(
-            JsonNode resultNode
-    ) {
-
-
-
-        JsonNode requestNode =
-                resultNode.path("request");
-
-        JsonNode responseNode =
-                resultNode.path("response");
-
-
-
-        RequestExecution execution =
-                new RequestExecution();
-
-
-
-        List<AssertionResult> assertions =
-                parseAssertions(resultNode);
-
-        execution.setAssertions(assertions);
-
-        execution.setName(
-                resultNode.path("name").asText("")
-        );
-
-        execution.setMethod(
-                requestNode
-                        .path("method")
-                        .asText("")
-                        .toUpperCase(Locale.ROOT)
-        );
-
-        execution.setUrl(
-                requestNode.path("url").asText("")
-        );
-
-        execution.setRequestBody(
-                parseRequestBody(requestNode)
-        );
-
-        execution.setHttpStatus(
-                responseNode.path("status").asInt(0)
-        );
-
-        execution.setStatusText(
-                responseNode.path("statusText").asText("")
-        );
-
-        execution.setResponseTimeMs(
-                responseNode.path("responseTime").asLong(0)
-        );
-
-        execution.setResponseSizeBytes(
-                responseNode.path("size").asLong(0)
-        );
-
-        if (responseNode.has("data")
-                && !responseNode.get("data").isNull()) {
-
-            Object responseBody = objectMapper.convertValue(
-                    responseNode.get("data"),
-                    Object.class
-            );
-
-            execution.setResponseBody(responseBody);
-        }
-
-        JsonNode errorNode =
-                resultNode.get("error");
-
-        boolean hasError =
-                errorNode != null
-                        && !errorNode.isNull();
-
-        boolean requestPassed =
-                "pass".equalsIgnoreCase(
-                        resultNode
-                                .path("status")
-                                .asText("")
-                );
-
-        boolean assertionsPassed =
-                assertions.stream()
-                        .allMatch(
-                                AssertionResult::isSuccessful
-                        );
-
-        execution.setSuccessful(
-                requestPassed
-                        && !hasError
-                        && assertionsPassed
-        );
-
-        return execution;
-    }
-
-    private Object parseRequestBody(JsonNode requestNode) {
-
-        JsonNode dataNode =
-                requestNode.get("data");
-
-        if (dataNode == null || dataNode.isNull()) {
-            return null;
-        }
-
-        if (dataNode.isTextual()) {
-
-            String data =
-                    dataNode.asText();
-
-            if (data.isBlank()) {
-                return null;
-            }
-
-            try {
-                return objectMapper.readValue(
-                        data,
-                        Object.class
-                );
-
-            } catch (Exception e) {
-
-                return data;
+    private RequestExecution parseRequest(JsonNode result) {
+        JsonNode req = result.path("request"), res = result.path("response");
+        RequestExecution r = new RequestExecution();
+        r.setName(result.path("name").asText(result.path("test").path("name").asText("")));
+        r.setMethod(req.path("method").asText("").toUpperCase(Locale.ROOT));
+        r.setUrl(req.path("url").asText(""));
+        r.setRequestBody(ParserSupport.body(req.get("data")));
+        r.setResponseBody(ParserSupport.body(res.get("data")));
+        r.setRequestHeaders(ParserSupport.body(req.get("headers")));
+        r.setResponseHeaders(ParserSupport.body(res.get("headers")));
+        r.setHttpStatus(res.path("status").asInt());
+        r.setStatusText(res.path("statusText").asText(""));
+        r.setResponseTimeMs(res.path("responseTime").asLong());
+        r.setResponseSizeBytes(res.path("size").asLong());
+        r.setTechnicalError(ParserSupport.error(result.get("error")));
+        for (String field : List.of("assertionResults", "testResults")) {
+            for (JsonNode a : result.path(field)) {
+                AssertionResult assertion = new AssertionResult();
+                assertion.setExpression(
+                        a.path("lhsExpr")
+                                .asText(
+                                        a.path("description")
+                                                .asText(a.path("name").asText("Teste"))));
+                assertion.setOperator(a.path("operator").asText(""));
+                assertion.setExpectedValue(
+                        a.path("rhsOperand").asText(a.path("rhsExpr").asText("")));
+                assertion.setErrorMessage(ParserSupport.error(a.get("error")));
+                assertion.setSkipped(
+                        a.path("skipped").asBoolean()
+                                || "skip".equalsIgnoreCase(a.path("status").asText()));
+                assertion.setSuccessful(
+                        !assertion.isSkipped()
+                                && "pass".equalsIgnoreCase(a.path("status").asText())
+                                && assertion.getErrorMessage().isEmpty());
+                r.getAssertions().add(assertion);
             }
         }
-
-        return objectMapper.convertValue(
-                dataNode,
-                Object.class
-        );
-    }
-
-    private ExecutionSummary createSummary(
-            List<RequestExecution> executions
-    ) {
-
-        int successfulRequests = (int) executions.stream()
-                .filter(RequestExecution::isSuccessful)
-                .count();
-
-        int totalRequests = executions.size();
-
-        int failedRequests =
-                totalRequests - successfulRequests;
-
-        int totalAssertions =
-                executions.stream()
-                        .mapToInt(
-                                execution ->
-                                        execution
-                                                .getAssertions()
-                                                .size()
-                        )
-                        .sum();
-
-        ExecutionSummary summary =
-                new ExecutionSummary();
-
-        int successfulAssertions =
-                (int) executions.stream()
-                        .flatMap(
-                                execution ->
-                                        execution
-                                                .getAssertions()
-                                                .stream()
-                        )
-                        .filter(
-                                AssertionResult::isSuccessful
-                        )
-                        .count();
-
-        int failedAssertions =
-                totalAssertions
-                        - successfulAssertions;
-
-        summary.setTotalRequests(totalRequests);
-        summary.setSuccessfulRequests(successfulRequests);
-        summary.setFailedRequests(failedRequests);
-        summary.setTotalAssertions(
-                totalAssertions
-        );
-
-        summary.setSuccessfulAssertions(
-                successfulAssertions
-        );
-
-        summary.setFailedAssertions(
-                failedAssertions
-        );
-        return summary;
-    }
-
-    private List<AssertionResult> parseAssertions(
-            JsonNode resultNode
-    ) {
-
-        List<AssertionResult> assertions =
-                new ArrayList<>();
-
-        JsonNode assertionResultsNode =
-                resultNode.path("assertionResults");
-
-        if (!assertionResultsNode.isArray()) {
-            return assertions;
-        }
-
-        for (JsonNode assertionNode : assertionResultsNode) {
-
-            AssertionResult assertion =
-                    new AssertionResult();
-
-            assertion.setExpression(
-                    assertionNode
-                            .path("lhsExpr")
-                            .asText("")
-            );
-
-            assertion.setOperator(
-                    assertionNode
-                            .path("operator")
-                            .asText("")
-            );
-
-            assertion.setExpectedValue(
-                    assertionNode
-                            .path("rhsOperand")
-                            .asText("")
-            );
-
-            assertion.setErrorMessage(
-                    assertionNode
-                            .path("error")
-                            .asText("")
-            );
-
-            assertion.setSuccessful(
-                    "pass".equalsIgnoreCase(
-                            assertionNode
-                                    .path("status")
-                                    .asText("")
-                    )
-            );
-
-            assertions.add(assertion);
-        }
-
-        return assertions;
+        r.setSuccessful(
+                r.getHttpStatus() > 0
+                        && "pass".equalsIgnoreCase(result.path("status").asText())
+                        && r.getTechnicalError().isEmpty()
+                        && r.getAssertions().stream().allMatch(AssertionResult::isSuccessful));
+        return r;
     }
 }

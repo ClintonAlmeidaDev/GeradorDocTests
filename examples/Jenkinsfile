@@ -1,0 +1,32 @@
+// Agent label is an organization-specific Linux agent with Java 21, Maven and Node 22.
+pipeline {
+  agent { label 'java21-node22' }
+  stages {
+    stage('Prepare') {
+      steps {
+        checkout scm
+        sh '''
+          set -eu
+          java -version
+          mvn -version
+          node --version
+          npm install -g @usebruno/cli@4.0.0 newman@6.2.2
+          bru --version
+          newman --version
+          mvn -B -ntp clean package
+          java -cp target/gerador-docs-tests-3.0.0.jar com.microsoft.playwright.CLI install chromium
+        '''
+      }
+    }
+    stage('Audit') {
+      steps {
+        sh 'bash scripts/run_ci.sh --collection examples/pass.postman_collection.json --environment HML'
+      }
+    }
+  }
+  post {
+    always {
+      archiveArtifacts artifacts: 'audit-artifacts/**', allowEmptyArchive: true
+    }
+  }
+}
