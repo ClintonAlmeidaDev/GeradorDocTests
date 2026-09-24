@@ -1,6 +1,6 @@
 # Desenvolvimento e testes
 
-Java 21 e Maven. Build:
+Java 25 e Maven. Build:
 
 ```bash
 mvn clean test
@@ -18,3 +18,5 @@ O script de integração usa servidor HTTP local descartável em porta livre, ex
 Para revisão visual, use `pdfinfo`, `pdftotext` e `pdftoppm -scale-to 1200 -png arquivo.pdf /tmp/page`. Confira começo, meio e fim de um PDF multipágina: nenhum texto cortado, sem sobreposição no footer. O teste não faz comparação pixel-perfect.
 
 O Maven Shade inclui dependências/driver no JAR; warnings de LICENSE/MANIFEST duplicados podem ocorrer por empacotamento. Recursos de serviços são mesclados. Não fazemos upgrade massivo das dependências existentes nesta entrega.
+
+O build usa uma única propriedade `maven.compiler.release=25`, sem preview. Compiler 3.14.1 e Shade 3.6.2 foram selecionados para o toolchain/bytecode atual; Maven Enforcer valida JDK 25+ e Maven 3.8.7+. Os scripts de integração/CI usam `JAVA_HOME/bin/java` quando disponível, evitando executar acidentalmente com um Java antigo do PATH.

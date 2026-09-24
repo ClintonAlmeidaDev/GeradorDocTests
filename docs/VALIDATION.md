@@ -1,6 +1,6 @@
 # Relatório de entrega e validação
 
-Entrega 3.0.0, 24/09/2026. Alterações deixadas na working tree, sem commits. Os arquivos previamente adicionados pelo usuário foram preservados no índice.
+Registro da entrega original 3.0.0 com Java 21, 24/09/2026. A migração posterior para Java 25 está registrada ao final. Alterações deixadas na working tree, sem commits. Os arquivos previamente adicionados pelo usuário foram preservados no índice.
 
 | Escopo | Status |
 |---|---|
@@ -66,3 +66,18 @@ Pipeline: use os templates em `examples/` e `scripts/run_ci.sh`; a publicação 
 - Dependências centrais existentes foram mantidas. Antes da distribuição corporativa, aplique a política de supply chain e retenção da empresa.
 
 Evidências locais da rodada final: `output/evidence/56c44089/validation.json`, com os quatro PDFs PASS/FAIL e respectivos manifests nos subdiretórios dos runners. São outputs ignorados pelo Git; cada nova execução do script cria outro diretório. As cópias raw fictícias usadas no teste de retenção foram removidas pelo próprio teste.
+
+## Migração para Java 25 — 24/09/2026
+
+Esta seção substitui o requisito Java 21 do registro histórico acima. O projeto agora compila com `maven.compiler.release=25`, sem preview, e exige JDK 25+ para build/runtime. Maven mínimo: 3.8.7. IDE, documentação operacional, pipelines Azure/GitHub/GitLab/Jenkins e scripts foram alinhados ao JDK 25. Scripts respeitam `JAVA_HOME`; o Java padrão do sistema não foi alterado.
+
+Validação executada com Eclipse Temurin **25.0.4.1+1-LTS** (arquivo oficial Adoptium com SHA-256 conferido) e Maven **3.8.7**:
+
+- `mvn clean test`: **24 testes, 0 falhas, 0 erros, 0 skipped**.
+- `mvn package`: **BUILD SUCCESS**, usando Compiler 3.14.1 e Shade 3.6.2.
+- JAR: bytecode da aplicação confirmado como **major 69 (Java 25)**; `--version` executou normalmente e a licença MIT continua incluída.
+- `mvn validate` com JDK 21: falhou como esperado, com a mensagem do Maven Enforcer exigindo JDK 25+.
+- Integração com JDK 25: Bruno PASS/FAIL e Newman PASS/FAIL, PDFs, arquivos de ambiente, sanitização, códigos 0/1/2, retenção raw explícita e staging de artifacts do CI aprovados.
+- Evidências desta migração: `output/java25-evidence/92c0f836/validation.json` e PDFs/manifests nos subdiretórios dos runners (outputs locais não versionados).
+
+As bibliotecas da aplicação e as regras de negócio foram mantidas. O Maven 3.8.7 emitiu aviso de depreciação de `sun.misc.Unsafe` vindo da sua própria dependência Guava; isso não impediu testes ou empacotamento. Não foram executados pipelines em provedores remotos.

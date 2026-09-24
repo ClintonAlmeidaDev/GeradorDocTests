@@ -1,5 +1,11 @@
 # Changelog
 
+## Não lançado
+
+- Migração do build e runtime para Java 25, incluindo IDE, documentação e pipelines.
+- Compiler 3.14.1 e Shade 3.6.2 para empacotamento de bytecode Java 25.
+- Maven Enforcer exige JDK 25+ e Maven 3.8.7+ com mensagem de configuração explícita.
+
 ## 3.0.0 - 2026-09-24
 
 - CLI genérica com autodetecção Bruno/Postman, configuração properties/env/args e JAR executável Java 21.

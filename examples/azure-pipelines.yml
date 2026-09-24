@@ -8,7 +8,7 @@ steps:
     fetchDepth: 0
   - task: JavaToolInstaller@0
     inputs:
-      versionSpec: '21'
+      versionSpec: '25'
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
   - task: NodeTool@0

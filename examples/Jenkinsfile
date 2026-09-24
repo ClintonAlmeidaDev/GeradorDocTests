@@ -1,6 +1,6 @@
-// Agent label is an organization-specific Linux agent with Java 21, Maven and Node 22.
+// Agent label is an organization-specific Linux agent with Java 25, Maven and Node 22.
 pipeline {
-  agent { label 'java21-node22' }
+  agent { label 'java25-node22' }
   stages {
     stage('Prepare') {
       steps {
