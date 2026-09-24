@@ -1,8 +1,9 @@
 package br.com.clinton.report;
 
+import br.com.clinton.sanitizer.SensitiveDataSanitizer;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import br.com.clinton.sanitizer.SensitiveDataSanitizer;
 
 public class JsonPayloadFormatter {
 
@@ -11,11 +12,9 @@ public class JsonPayloadFormatter {
 
     public JsonPayloadFormatter() {
 
-        this.objectMapper =
-                new ObjectMapper();
+        this.objectMapper = new ObjectMapper();
 
-        this.sanitizer =
-                new SensitiveDataSanitizer();
+        this.sanitizer = new SensitiveDataSanitizer();
     }
 
     public String format(Object payload) {
@@ -24,22 +23,24 @@ public class JsonPayloadFormatter {
             return "";
         }
 
-        Object sanitizedPayload =
-                sanitizer.sanitize(payload);
+        if (payload instanceof String text) {
+            try {
+                payload = objectMapper.readValue(text, Object.class);
+            } catch (Exception ignored) {
+                return sanitizer.sanitizeText(text);
+            }
+        }
+        Object sanitizedPayload = sanitizer.sanitize(payload);
 
         try {
 
             return objectMapper
                     .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(
-                            sanitizedPayload
-                    );
+                    .writeValueAsString(sanitizedPayload);
 
         } catch (JsonProcessingException e) {
 
-            return String.valueOf(
-                    sanitizedPayload
-            );
+            return String.valueOf(sanitizedPayload);
         }
     }
 }

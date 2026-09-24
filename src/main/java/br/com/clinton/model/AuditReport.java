@@ -3,6 +3,15 @@ package br.com.clinton.model;
 import java.util.List;
 
 public class AuditReport {
+    private boolean executionFailed;
+
+    public boolean isExecutionFailed() {
+        return executionFailed;
+    }
+
+    public void setExecutionFailed(boolean value) {
+        this.executionFailed = value;
+    }
 
     private List<RequestExecution> executions;
     private ExecutionSummary summary;

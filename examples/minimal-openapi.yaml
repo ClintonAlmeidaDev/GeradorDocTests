@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Example API
+  version: 1.0.0
+paths:
+  /posts/{id}:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: integer}
+        - name: token
+          in: query
+          schema: {type: string}
+      responses:
+        '200': {description: OK}
+  /posts:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: {type: string}
+                userId: {type: integer}
+      responses:
+        '201': {description: Created}

@@ -37,3 +37,12 @@ build/
 
 ### Mac OS ###
 .DS_Store
+# Audit outputs may contain evidence and sensitive raw diagnostics.
+audit-output/
+output/
+tmp/
+*.raw.json
+*.sanitized.json
+*.audit-run.json
+__pycache__/
+*.pyc

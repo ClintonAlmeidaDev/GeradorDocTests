@@ -1,0 +1,32 @@
+# Copy to azure-pipelines.yml; customize collection/environment without embedding secrets.
+trigger:
+  - main
+pool:
+  vmImage: ubuntu-24.04
+steps:
+  - checkout: self
+    fetchDepth: 0
+  - task: JavaToolInstaller@0
+    inputs:
+      versionSpec: '21'
+      jdkArchitectureOption: x64
+      jdkSourceOption: PreInstalled
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '22.x'
+  - bash: |
+      set -euo pipefail
+      npm install -g @usebruno/cli@4.0.0 newman@6.2.2
+      bru --version
+      newman --version
+      mvn -B -ntp clean package
+      java -cp target/gerador-docs-tests-3.0.0.jar com.microsoft.playwright.CLI install --with-deps chromium
+    displayName: Prepare Java, runners and Chromium
+  - bash: bash scripts/run_ci.sh --collection examples/pass.postman_collection.json --environment HML
+    displayName: Execute API audit (preserve exit code)
+  - task: PublishPipelineArtifact@1
+    condition: always()
+    inputs:
+      targetPath: audit-artifacts
+      artifact: api-test-evidence
+    displayName: Publish evidence even on test failure

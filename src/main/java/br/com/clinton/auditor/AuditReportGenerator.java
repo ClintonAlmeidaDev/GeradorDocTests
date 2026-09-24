@@ -9,22 +9,19 @@ import java.nio.file.Paths;
 
 public class AuditReportGenerator {
 
-    public static void generatePdfFromHtml(
-            String htmlContent,
-            String outputPath
-    ) {
+    public static void generatePdfFromHtml(String htmlContent, String outputPath) {
 
         try (Playwright playwright = Playwright.create()) {
 
-            Browser browser =
-                    playwright.chromium().launch();
+            Browser browser = playwright.chromium().launch();
 
-            Page page =
-                    browser.newPage();
+            Page page = browser.newPage();
 
+            page.route("**/*", route -> route.abort());
             page.setContent(htmlContent);
 
-            String footerTemplate = """
+            String footerTemplate =
+                    """
                     <div style="
                         width: 100%;
                         font-size: 8px;
@@ -45,32 +42,17 @@ public class AuditReportGenerator {
                             .setPath(Paths.get(outputPath))
                             .setFormat("A4")
                             .setPrintBackground(true)
-
                             .setDisplayHeaderFooter(true)
-
-                            .setHeaderTemplate(
-                                    "<div></div>"
-                            )
-
-                            .setFooterTemplate(
-                                    footerTemplate
-                            )
-
+                            .setHeaderTemplate("<div></div>")
+                            .setFooterTemplate(footerTemplate)
                             .setMargin(
                                     new Margin()
                                             .setTop("15mm")
                                             .setBottom("20mm")
                                             .setLeft("10mm")
-                                            .setRight("10mm")
-                            )
-            );
+                                            .setRight("10mm")));
 
             browser.close();
-
-            System.out.println(
-                    "Relatorio PDF gerado com sucesso em: "
-                            + outputPath
-            );
         }
     }
 }
