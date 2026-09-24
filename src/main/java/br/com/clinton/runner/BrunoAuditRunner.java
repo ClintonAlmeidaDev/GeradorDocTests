@@ -11,7 +11,8 @@ import br.com.clinton.executor.BrunoCliExecutor;
 import br.com.clinton.report.HtmlReportGenerator;
 
 import br.com.clinton.auditor.AuditReportGenerator;
-import br.com.clinton.executor.BrunoExecutionResult;
+import br.com.clinton.executor.CollectionExecutionResult;
+import br.com.clinton.executor.CollectionExecutor;
 
 import br.com.clinton.model.ReportMetadata;
 
@@ -29,10 +30,11 @@ public class BrunoAuditRunner {
                 AuditConfigurationLoader.load(args);
 
         try {
-            BrunoCliExecutor brunoCliExecutor = new BrunoCliExecutor();
+            CollectionExecutor collectionExecutor =
+                    new BrunoCliExecutor();
 
-            BrunoExecutionResult executionResult =
-                    brunoCliExecutor.execute(
+            CollectionExecutionResult executionResult =
+                    collectionExecutor.execute(
                             configuration.getCollectionPath(),
                             configuration.getJsonOutputPath()
                     );

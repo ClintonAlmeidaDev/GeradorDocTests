@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-public class BrunoCliExecutor {
+public class BrunoCliExecutor implements CollectionExecutor{
 
     private final String bruExecutable;
 
@@ -15,11 +15,13 @@ public class BrunoCliExecutor {
         );
     }
 
-    public BrunoCliExecutor(String bruExecutable) {
+    public BrunoCliExecutor(String bruExecutable)
+    {
         this.bruExecutable = bruExecutable;
     }
 
-    public BrunoExecutionResult execute(
+    @Override
+    public CollectionExecutionResult execute(
             String collectionDirStr,
             String outputPathStr
     ) throws IOException, InterruptedException {
@@ -90,7 +92,7 @@ public class BrunoCliExecutor {
             );
         }
 
-        return new BrunoExecutionResult(
+        return new CollectionExecutionResult(
                 exitCode,
                 reportGenerated
         );
