@@ -1,6 +1,6 @@
 # GeradorDocsTests 3.0.0
 
-CLI Java 21 que executa collections **Bruno e Postman/Newman** e gera uma evidência corporativa em PDF. O mesmo domínio, sanitizador e template atendem ambos os runners. Uma assertion falha mantém a evidência e retorna código 1 para o pipeline, mesmo quando o HTTP é 200/201.
+CLI Java 25 que executa collections **Bruno e Postman/Newman** e gera uma evidência corporativa em PDF. O mesmo domínio, sanitizador e template atendem ambos os runners. Uma assertion falha mantém a evidência e retorna código 1 para o pipeline, mesmo quando o HTTP é 200/201.
 
 ```mermaid
 flowchart LR
@@ -30,7 +30,7 @@ flowchart LR
 
 ## Instalação e build
 
-Requisitos: Java **21**, Maven **3.8+**, Node **22**, Bruno CLI **4.0.0** e/ou Newman **6.2.2**, Chromium correspondente ao Playwright Java **1.40.0**.
+Requisitos: Java **25**, Maven **3.8.7+**, Node **22**, Bruno CLI **4.0.0** e/ou Newman **6.2.2**, Chromium correspondente ao Playwright Java **1.40.0**.
 
 ```bash
 npm install -g @usebruno/cli@4.0.0 newman@6.2.2
@@ -89,3 +89,13 @@ Não publique JSON bruto. Por padrão ele fica em diretório temporário privado
 [Arquitetura](docs/ARCHITECTURE.md) · [Instalação](docs/INSTALLATION.md) · [Uso](docs/USAGE.md) · [Configuração](docs/CONFIGURATION.md) · [Bruno](docs/BRUNO.md) · [Postman/Newman](docs/POSTMAN_NEWMAN.md) · [Segurança](docs/SECURITY.md) · [Relatório](docs/REPORT.md) · [CI/CD](docs/CI_CD.md) · [OpenAPI](docs/OPENAPI.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Roadmap](docs/ROADMAP.md) · [Desenvolvimento](docs/DEVELOPMENT.md) · [Changelog](CHANGELOG.md).
 
 Relatório desta entrega: [validação e limitações](docs/VALIDATION.md).
+
+## Licença e uso pela empresa
+
+O código original e a documentação do GeradorDocsTests são software livre e de código aberto, disponibilizados sob a **[licença MIT](LICENSE)**. É permitido usar gratuitamente em empresas, inclusive comercialmente, copiar, modificar, integrar a sistemas proprietários e redistribuir. A MIT não exige publicar as alterações internas da empresa.
+
+Ao copiar ou redistribuir o software ou partes substanciais dele, mantenha o aviso de copyright e o texto da licença. O software é fornecido sem garantia, conforme o texto integral da MIT. Referência: [licença MIT na Open Source Initiative](https://opensource.org/license/mit).
+
+Esta licença se aplica ao código original do projeto; bibliotecas, runners, navegador e outros componentes de terceiros mantêm suas próprias licenças e avisos. O JAR inclui dependências: sua redistribuição também deve respeitar essas condições. A inclusão da MIT não representa uma auditoria das licenças de terceiros.
+
+A disponibilização sob MIT pressupõe que os titulares dos direitos autorais autorizem essa licença. Se algum trecho pertencer a um empregador, cliente ou terceiro, a autorização correspondente precisa existir. O uso na empresa continua sujeito às políticas internas de aprovação de software.

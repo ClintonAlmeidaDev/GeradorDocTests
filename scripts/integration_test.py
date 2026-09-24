@@ -19,6 +19,7 @@ parser.add_argument('--jar', default='target/gerador-docs-tests-3.0.0.jar')
 parser.add_argument('--output', default='output/evidence')
 args = parser.parse_args()
 jar = Path(args.jar).resolve()
+java = str(Path(os.environ['JAVA_HOME']) / 'bin' / 'java') if os.environ.get('JAVA_HOME') else 'java'
 root = Path(args.output).resolve() / str(uuid.uuid4())[:8]
 root.mkdir(parents=True)
 secret = 'FICTIONAL_SENSITIVE_VALUE_7934'
@@ -69,7 +70,7 @@ try:
                 environment = dest / 'hml.postman_environment.json'
                 environment.write_text(json.dumps({'name': 'LOCAL', 'values': [{'key': 'baseUrl', 'value': base, 'enabled': True}]}))
                 extra = ['--environment-file', str(environment)]
-            command = ['java', '-jar', str(jar), '--collection', str(collection), '--output-dir', str(dest / 'reports'),
+            command = [java, '-jar', str(jar), '--collection', str(collection), '--output-dir', str(dest / 'reports'),
                        '--environment', 'LOCAL', '--company', 'EMPRESA EXEMPLO', '--timeout-seconds', '120'] + extra
             run = subprocess.run(command, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=180)
             assert run.returncode == expected, (runner, state, run.returncode, run.stdout)
@@ -91,15 +92,15 @@ try:
                 assert 'Evidência' in text or 'EVIDÊNCIA' in text
             results.append({'runner': runner, 'scenario': state, 'exitCode': run.returncode, 'pdf': str(pdfs[0]), 'manifest': str(manifest)})
             print(runner, state, 'OK; PDF:', pdfs[0], flush=True)
-    missing = subprocess.run(['java', '-jar', str(jar), '--collection', str(root / 'missing')], env=env, capture_output=True)
+    missing = subprocess.run([java, '-jar', str(jar), '--collection', str(root / 'missing')], env=env, capture_output=True)
     assert missing.returncode == 2
     # Existing collection + missing executable must be technical failure.
     absent = dict(env, NEWMAN_EXECUTABLE=str(root / 'missing-executable'))
-    bad = subprocess.run(['java', '-jar', str(jar), '--collection', str(collection), '--output-dir', str(root / 'missing-runner')], env=absent, capture_output=True)
+    bad = subprocess.run([java, '-jar', str(jar), '--collection', str(collection), '--output-dir', str(root / 'missing-runner')], env=absent, capture_output=True)
     assert bad.returncode == 2 and b'NEWMAN_EXECUTABLE' in bad.stderr
     # Explicit raw retention uses distinct restricted .raw.json; output JSON remains sanitized.
     retained = root / 'retention'
-    keep = subprocess.run(['java', '-jar', str(jar), '--collection', str(collection), '--keep-raw-results', '--environment-file', str(environment), '--output-dir', str(retained)], env=env, capture_output=True, timeout=180)
+    keep = subprocess.run([java, '-jar', str(jar), '--collection', str(collection), '--keep-raw-results', '--environment-file', str(environment), '--output-dir', str(retained)], env=env, capture_output=True, timeout=180)
     assert keep.returncode == 1, keep.stderr.decode()
     assert len(list(retained.glob('*.raw.json'))) == 1
     for raw in retained.glob('*.raw.json'):

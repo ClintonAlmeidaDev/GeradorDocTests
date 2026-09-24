@@ -17,3 +17,9 @@
 | Sem detalhes de exception no console | Mensagens de bibliotecas podem incluir secrets. Logs são deliberadamente restritos; investigue localmente com dados fictícios/raw protegido |
 
 Ao pedir suporte, informe versão da ferramenta, Java/Node/runner, código final, opções sem secrets e fixture mínima reproduzível. Não envie reporter bruto de empresa nem copie environment com tokens. Teste primeiro `python3 scripts/integration_test.py` para separar problema de instalação de problema da collection/VPN.
+
+## Java 25
+
+- `GeradorDocsTests exige JDK 25 ou superior`: o Maven está usando JDK antigo. Confira `mvn -version`, `JAVA_HOME` e o JDK do runner Maven no IntelliJ.
+- `UnsupportedClassVersionError` mencionando versão 69: o JAR foi compilado para Java 25, mas o runtime selecionado é anterior. Confira `java -version`. Os scripts `run_ci.sh` e `integration_test.py` respeitam `JAVA_HOME` quando definido.
+- `sun.misc.Unsafe::objectFieldOffset` ao iniciar Maven 3.8.7 com Java 25: aviso observado em uma dependência interna do Maven (Guava). Não impediu o build/testes; não é motivo para reduzir o release do projeto. Use uma distribuição Maven atualizada conforme a política do ambiente.

@@ -1,5 +1,5 @@
 # Copy to .gitlab-ci.yml. Image provides Maven/Java; install Node 22 without a remote shell script.
-image: maven:3.9.9-eclipse-temurin-21
+image: maven:3.9.16-eclipse-temurin-25
 stages: [audit]
 api-audit:
   stage: audit

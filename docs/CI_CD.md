@@ -2,7 +2,7 @@
 
 Azure DevOps é o template principal: `examples/azure-pipelines.yml`. Também há `examples/github-actions.yml`, `examples/gitlab-ci.yml` e `examples/Jenkinsfile`. São templates executáveis a adaptar ao caminho da collection e ao agente da organização; não foram publicados em contas remotas nesta entrega.
 
-Etapas: preparar Java 21/Node 22/Maven, instalar e validar runners, compilar o JAR, provisionar Chromium, executar auditoria, publicar artifact **mesmo quando a execução retorna 1**. Não use `continueOnError` para esconder falha funcional. A execução retorna o código Java; a publicação usa `always()`/`when: always`/`post always`. Assim PDF FAIL fica disponível e job continua FAILED.
+Etapas: preparar Java 25/Node 22/Maven, instalar e validar runners, compilar o JAR, provisionar Chromium, executar auditoria, publicar artifact **mesmo quando a execução retorna 1**. Não use `continueOnError` para esconder falha funcional. A execução retorna o código Java; a publicação usa `always()`/`when: always`/`post always`. Assim PDF FAIL fica disponível e job continua FAILED.
 
 `scripts/run_ci.sh` cria diretório de execução e copia somente PDFs/manifests para `audit-artifacts/`; escreve `exit-code.txt` e devolve 0/1/2. Não inclui raw, ambientes nem JSON completo por padrão. Execute em checkout limpo/efêmero para evitar artifacts de jobs anteriores. Não acrescente `--keep-raw-results` em CI.
 
