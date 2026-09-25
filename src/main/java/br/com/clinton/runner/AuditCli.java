@@ -35,6 +35,8 @@ public final class AuditCli {
                 System.out.println("GeradorDocsTests " + ExecutionContextCollector.version());
                 return 0;
             }
+            if (o.flag("doctor"))
+                return new br.com.clinton.diagnostics.EnvironmentDoctor().check(o);
             int code;
             if (o.get("openapi") != null) {
                 new OpenApiBootstrap()
@@ -67,26 +69,28 @@ public final class AuditCli {
 
     private static final String HELP =
             """
-            GeradorDocsTests - evidência de testes de API
-            java -jar gerador-docs-tests.jar --collection PATH [opções]
-            --runner auto|bruno|postman       Detecção automática por padrão
-            --environment HML               Rótulo do relatório (default LOCAL)
-            --folder PATH                   Pasta da collection (ex.: HOMOLOGACAO)
-            --bruno-env NAME                 Ambiente executado pelo Bruno
-            --environment-file PATH         Environment Newman/Bruno
-            --company NAME --executor NAME   Empresa e responsável
-            --output-dir PATH               Default audit-output
-            --pdf-output PATH               Caminho PDF explícito, sem sobrescrever
-            --json-output PATH              JSON normalizado SANITIZADO
-            --keep-raw-results               Mantém JSON bruto sensível para diagnóstico
-            --mask-key FIELD                Repetível; normaliza hífens e underscores
-            --config PATH                   Arquivo .properties UTF-8
-            --timeout-seconds N             Timeout do processo (default 1800)
-            --tool-arg=ARG                   Um argumento literal, repetível
-            -- [args...]                    Argumentos adicionais Bruno/Newman
-            --openapi FILE --generate bruno|postman --output-dir DIR
-            compare runA.audit-run.json runB.audit-run.json
-            --help --version
-            Exit codes: 0 PASS; 1 FAIL com PDF; 2 erro técnico/configuração.
-            """;
+GeradorDocsTests - evidência de testes de API
+java -jar gerador-docs-tests.jar --collection PATH [opções]
+--runner auto|bruno|postman       Detecção automática por padrão
+--environment HML               Rótulo do relatório (default LOCAL)
+--folder PATH                   Pasta da collection (ex.: HOMOLOGACAO)
+--bruno-env NAME                 Ambiente executado pelo Bruno
+--environment-file PATH         Environment Newman/Bruno
+--company NAME --executor NAME   Empresa e responsável
+--output-dir PATH               Default audit-output
+--pdf-output PATH               Caminho PDF explícito, sem sobrescrever
+--json-output PATH              JSON normalizado SANITIZADO
+--keep-raw-results               Mantém JSON bruto sensível para diagnóstico
+--mask-key FIELD                Repetível; normaliza hífens e underscores
+--config PATH                   Arquivo .properties UTF-8
+--timeout-seconds N             Timeout do processo (default 1800)
+--tool-arg=ARG                   Um argumento literal, repetível
+-- [args...]                    Argumentos adicionais Bruno/Newman
+--openapi FILE --generate bruno|postman --output-dir DIR
+compare runA.audit-run.json runB.audit-run.json
+--doctor                        Verifica runner, escrita e Chromium sem chamar APIs
+--diagnostics                   Mostra launcher/cwd/reporter; argumentos sensíveis ocultos
+--help --version
+Exit codes: 0 PASS; 1 FAIL com PDF; 2 erro técnico/configuração.
+""";
 }

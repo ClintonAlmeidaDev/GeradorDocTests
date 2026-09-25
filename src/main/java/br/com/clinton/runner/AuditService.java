@@ -73,12 +73,57 @@ public class AuditService {
                                     System.getenv().getOrDefault("NEWMAN_EXECUTABLE", "newman"),
                                     extra,
                                     o.timeout());
+            if (o.flag("diagnostics")) {
+                String executable =
+                        runner.equals("bruno")
+                                ? System.getenv().getOrDefault("BRU_EXECUTABLE", "bru")
+                                : System.getenv().getOrDefault("NEWMAN_EXECUTABLE", "newman");
+                var command =
+                        RunnerCommandResolver.resolve(
+                                executable,
+                                runner.equals("bruno") ? "BRU_EXECUTABLE" : "NEWMAN_EXECUTABLE");
+                var sanitizer = new SensitiveDataSanitizer(o.maskKeys);
+                LOG.info(
+                        "Launcher: {}. Modo: {}",
+                        sanitizer.sanitizeText(command.prefix().toString()),
+                        command.mode());
+                LOG.info(
+                        "Diretório de execução: {}",
+                        sanitizer.sanitizeText(
+                                (Files.isDirectory(collection)
+                                                ? collection
+                                                : collection.getParent())
+                                        .toString()));
+                LOG.info("Reporter esperado: {}", raw);
+                LOG.info(
+                        "Recursivo: {}. Pasta selecionada: {}. Argumentos adicionais: {} (valores"
+                                + " ocultos).",
+                        runner.equals("bruno"),
+                        o.get("folder") != null,
+                        extra.size());
+                if (runner.equals("bruno"))
+                    LOG.info(
+                            "Estrutura do comando: <launcher> run <pasta ou .> -r <argumentos"
+                                    + " ocultos> --reporter-json <reporter esperado>");
+                else
+                    LOG.info(
+                            "Estrutura do comando: <launcher> run <collection> <argumentos ocultos>"
+                                    + " --reporters cli,json --reporter-json-export <reporter"
+                                    + " esperado>");
+            }
             CollectionExecutionResult result =
                     executor.execute(collection.toString(), raw.toString());
             if (!result.isReportGenerated())
                 throw new IllegalStateException(
-                        "Executor não gerou JSON. Verifique collection, ambiente, argumentos e"
-                                + " instalação do runner.");
+                        "Executor não gerou JSON (código "
+                                + result.getExitCode()
+                                + "). "
+                                + String.join(" ", result.getDiagnostics())
+                                + " Execute --doctor --runner="
+                                + runner
+                                + " e repita com --diagnostics. Confira collection, ambiente e"
+                                + " argumentos. A saída bruta do runner é ocultada para proteger"
+                                + " dados sensíveis.");
             AuditReport report =
                     (runner.equals("bruno") ? new BrunoResultParser() : new PostmanResultParser())
                             .parse(raw.toString());

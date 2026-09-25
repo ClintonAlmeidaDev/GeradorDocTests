@@ -16,24 +16,31 @@ class RawLifecycleTest {
 
     @Test
     void malformedReporterIsRemovedEvenWhenParsingFails() throws Exception {
-        run(false);
+        run(false, false);
     }
 
     @Test
     void explicitRetentionPreservesRawAfterParsingFailure() throws Exception {
-        run(true);
+        run(true, false);
     }
 
-    void run(boolean keep) throws Exception {
+    @Test
+    void missingReporterExplainsFailureWithoutLeakingRunnerOutput() throws Exception {
+        run(false, true);
+    }
+
+    void run(boolean keep, boolean missing) throws Exception {
         Path collection = Files.createDirectory(temp.resolve("collection"));
         Path runtime = Files.createDirectory(temp.resolve("runtime"));
         Path output = temp.resolve("output");
         Path executable = temp.resolve("fake-bru");
         Files.writeString(
                 executable,
-                "#!/bin/sh\n"
-                    + "for arg do out=\"$arg\"; done\n"
-                    + "printf 'not-json PRIVATE_FIXTURE_SECRET' > \"$out\"\n");
+                missing
+                        ? "#!/bin/sh\nprintf 'unknown option PRIVATE_FIXTURE_SECRET\\n'\nexit 1\n"
+                        : "#!/bin/sh\n"
+                                + "for arg do out=\"$arg\"; done\n"
+                                + "printf 'not-json PRIVATE_FIXTURE_SECRET' > \"$out\"\n");
         assertTrue(executable.toFile().setExecutable(true));
         List<String> command =
                 new ArrayList<>(
@@ -60,6 +67,11 @@ class RawLifecycleTest {
                         java.nio.charset.StandardCharsets.UTF_8);
         assertEquals(2, child.exitValue(), console);
         assertFalse(console.contains("PRIVATE_FIXTURE_SECRET"));
+        if (missing) {
+            assertTrue(console.contains("argumento desconhecido"), console);
+            assertTrue(console.contains("--doctor --runner=bruno"), console);
+            assertTrue(console.contains("código 1"), console);
+        }
         try (var paths = Files.list(runtime)) {
             assertEquals(0, paths.count());
         }

@@ -29,7 +29,9 @@ public final class CliOptions {
                     "openapi",
                     "generate",
                     "collection-name",
-                    "folder");
+                    "folder",
+                    "doctor",
+                    "diagnostics");
     private final Map<String, String> values = new LinkedHashMap<>();
     public final List<String> maskKeys = new ArrayList<>(), toolArgs = new ArrayList<>();
 
@@ -49,7 +51,9 @@ public final class CliOptions {
             String key = kv[0];
             if (!ALLOWED.contains(key))
                 throw new IllegalArgumentException("Opção desconhecida: --" + key);
-            boolean flag = Set.of("help", "version", "keep-raw-results").contains(key);
+            boolean flag =
+                    Set.of("help", "version", "keep-raw-results", "doctor", "diagnostics")
+                            .contains(key);
             String val =
                     kv.length == 2 ? kv[1] : flag ? "true" : (++i < args.length ? args[i] : null);
             if (val == null || val.isBlank() || (!key.equals("tool-arg") && val.startsWith("--")))
