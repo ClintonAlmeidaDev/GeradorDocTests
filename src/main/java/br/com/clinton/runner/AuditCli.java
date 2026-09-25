@@ -71,6 +71,7 @@ public final class AuditCli {
             java -jar gerador-docs-tests.jar --collection PATH [opções]
             --runner auto|bruno|postman       Detecção automática por padrão
             --environment HML               Rótulo do relatório (default LOCAL)
+            --folder PATH                   Pasta da collection (ex.: HOMOLOGACAO)
             --bruno-env NAME                 Ambiente executado pelo Bruno
             --environment-file PATH         Environment Newman/Bruno
             --company NAME --executor NAME   Empresa e responsável

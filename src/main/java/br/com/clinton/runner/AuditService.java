@@ -41,6 +41,15 @@ public class AuditService {
                 throw new IllegalArgumentException("--bruno-env exige runner Bruno.");
             extra.addAll(List.of("--env", o.get("bruno-env")));
         }
+        if (o.get("folder") != null) {
+            if (runner.equals("bruno")) {
+                Path folder = collection.resolve(o.get("folder")).normalize();
+                if (!folder.startsWith(collection) || !Files.isDirectory(folder))
+                    throw new IllegalArgumentException(
+                            "--folder deve ser uma pasta existente dentro da collection.");
+
+            } else extra.addAll(List.of("--folder", o.get("folder")));
+        }
         ZonedDateTime started = ZonedDateTime.now();
         long nanos = System.nanoTime();
         String id = UUID.randomUUID().toString();
@@ -58,7 +67,8 @@ public class AuditService {
                             ? new BrunoCliExecutor(
                                     System.getenv().getOrDefault("BRU_EXECUTABLE", "bru"),
                                     extra,
-                                    o.timeout())
+                                    o.timeout(),
+                                    o.get("folder", "."))
                             : new NewmanExecutor(
                                     System.getenv().getOrDefault("NEWMAN_EXECUTABLE", "newman"),
                                     extra,
@@ -68,7 +78,7 @@ public class AuditService {
             if (!result.isReportGenerated())
                 throw new IllegalStateException(
                         "Executor não gerou JSON. Verifique collection, ambiente, argumentos e"
-                            + " instalação do runner.");
+                                + " instalação do runner.");
             AuditReport report =
                     (runner.equals("bruno") ? new BrunoResultParser() : new PostmanResultParser())
                             .parse(raw.toString());
@@ -135,7 +145,7 @@ public class AuditService {
             } catch (RuntimeException e) {
                 throw new IllegalStateException(
                         "Falha Playwright/Chromium ao gerar PDF. Verifique instalação do navegador"
-                            + " e bibliotecas nativas.");
+                                + " e bibliotecas nativas.");
             }
             Files.writeString(
                     json,
@@ -173,7 +183,7 @@ public class AuditService {
                     }
                     LOG.warn(
                             "JSON bruto mantido em {}. Pode conter dados sensíveis; não publique"
-                                + " este arquivo.",
+                                    + " este arquivo.",
                             retained);
                 }
             } finally {

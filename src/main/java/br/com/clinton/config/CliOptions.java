@@ -28,7 +28,8 @@ public final class CliOptions {
                     "version",
                     "openapi",
                     "generate",
-                    "collection-name");
+                    "collection-name",
+                    "folder");
     private final Map<String, String> values = new LinkedHashMap<>();
     public final List<String> maskKeys = new ArrayList<>(), toolArgs = new ArrayList<>();
 
@@ -110,7 +111,7 @@ public final class CliOptions {
         for (String a : o.toolArgs)
             if (a.startsWith("--reporter")
                     || a.startsWith("--export-")
-                    || Set.of("-o", "--output", "-f", "--format", "-r").contains(a.split("=")[0]))
+                    || Set.of("-o", "--output", "-f", "--format").contains(a.split("=")[0]))
                 throw new IllegalArgumentException(
                         "Argumentos de reporter/export são gerenciados pela ferramenta.");
         return o;

@@ -17,33 +17,16 @@ final class ExternalProcess {
             List<String> args,
             long timeoutSeconds)
             throws IOException, InterruptedException {
-        Path exe = Path.of(executable);
-        String path = System.getenv().getOrDefault("PATH", "");
-        if (exe.isAbsolute() && exe.getParent() != null)
-            path = exe.getParent() + File.pathSeparator + path;
-        boolean found =
-                exe.isAbsolute()
-                        ? Files.isExecutable(exe)
-                        : Arrays.stream(path.split(File.pathSeparator))
-                                .anyMatch(
-                                        p ->
-                                                Files.isExecutable(Path.of(p, executable))
-                                                        || Files.isRegularFile(
-                                                                Path.of(p, executable + ".cmd")));
-        if (!found)
-            throw new IllegalStateException(
-                    (variable.equals("BRU_EXECUTABLE") ? "Bruno CLI" : "Newman")
-                            + " não encontrado. Configure "
-                            + variable
-                            + " ou PATH.");
+        RunnerCommandResolver.Command resolved =
+                RunnerCommandResolver.resolve(executable, variable);
         Files.createDirectories(output.toAbsolutePath().getParent());
         Files.deleteIfExists(output);
-        List<String> command = new ArrayList<>();
-        command.add(executable);
+        List<String> command = new ArrayList<>(resolved.prefix());
         command.addAll(args);
         ProcessBuilder builder =
                 new ProcessBuilder(command).directory(cwd.toFile()).redirectErrorStream(true);
-        builder.environment().put("PATH", path);
+        builder.environment().clear();
+        builder.environment().putAll(resolved.environment());
         Process process = builder.start();
         // Do not relay arbitrary collection console.log / assertion values to CI logs.
         Thread drain =
