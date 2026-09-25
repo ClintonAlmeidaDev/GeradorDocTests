@@ -1,0 +1,22 @@
+info:
+  name: Obtain a fictional service token
+  type: http
+  seq: 1
+http:
+  method: post
+  url: "{{baseUrl}}/oauth/token"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: '{"clientId":"{{clientId}}","clientSecret":"{{clientSecret}}"}'
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("OAuth succeeds", () => { expect(res.getStatus()).to.equal(200); });
+        test("Token is returned", () => { expect(res.getBody().accessToken).to.be.a("string"); });
+        bru.setVar("accessToken", res.getBody().accessToken);
+settings:
+  timeout: 10000

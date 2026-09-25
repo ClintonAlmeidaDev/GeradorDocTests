@@ -27,3 +27,8 @@ Ao pedir suporte, informe versão da ferramenta, Java/Node/runner, código final
 ## Windows / Artifactory
 
 Veja [Windows e rede corporativa](WINDOWS.md) para PowerShell, `bru.cmd`, Node fora do PATH do IntelliJ, mirror Maven com `mirrorOf=*` e seleção de HOMOLOGACAO. `--environment HML` não carrega variáveis: use `--bruno-env HML` ou `--environment-file`.
+
+- O diagnóstico aguarda até 60 segundos por `--version`; Newman levou aproximadamente 23 segundos na medição nativa desta rodada. Se exceder esse limite, verifique a instalação npm e as políticas de proteção de processos, sem desativá-las.
+- Auditorias não fazem download automático de navegadores. Instale Chromium previamente com o setup/CLI usando a mesma conta e `PLAYWRIGHT_BROWSERS_PATH` da execução.
+- Saída ocupada por um arquivo ou bloqueada por ACL produz orientação para conferir `--output-dir` e permissões.
+- Scripts PowerShell preservam o código 2 quando Java/JAR não pode iniciar. Erros do próprio setup encerram a instalação; não confunda seu status com uma execução de testes de API.

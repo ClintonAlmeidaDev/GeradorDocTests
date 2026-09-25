@@ -24,7 +24,8 @@ final class ExternalProcess {
         List<String> command = new ArrayList<>(resolved.prefix());
         command.addAll(args);
         ProcessBuilder builder =
-                new ProcessBuilder(command).directory(cwd.toFile()).redirectErrorStream(true);
+                new ProcessBuilder(ProcessArguments.literal(command))
+                        .directory(cwd.toFile()).redirectErrorStream(true);
         builder.environment().clear();
         builder.environment().putAll(resolved.environment());
         Process process;

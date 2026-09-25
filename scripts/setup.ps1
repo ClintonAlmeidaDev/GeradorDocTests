@@ -5,10 +5,16 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $java = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME 'bin/java.exe' } else { 'java' }
-& $java -version
-if ($LASTEXITCODE -ne 0) { throw 'Instale JDK 25 e configure JAVA_HOME.' }
-& node --version
-if ($LASTEXITCODE -ne 0) { throw 'Instale Node 22 e reabra o terminal.' }
+$javaVersion = & $java --version
+if ($LASTEXITCODE -ne 0 -or ($javaVersion -join ' ') -notmatch '(?:openjdk|java) (\d+)' -or [int]$Matches[1] -lt 25) {
+    throw 'Instale JDK 25 ou superior e configure JAVA_HOME antes do setup.'
+}
+Write-Host ($javaVersion -join "`n")
+$nodeVersion = & node --version
+if ($LASTEXITCODE -ne 0 -or $nodeVersion -notmatch '^v(\d+)\.' -or [int]$Matches[1] -lt 22) {
+    throw 'Instale Node 22 ou superior e reabra o terminal.'
+}
+Write-Host $nodeVersion
 $npm = (Get-Command npm.cmd -ErrorAction Stop).Source
 $project = Split-Path $PSScriptRoot -Parent
 $jar = if ($env:AUDIT_JAR) { $env:AUDIT_JAR } else { Join-Path $project 'target/gerador-docs-tests-3.0.0.jar' }
@@ -19,11 +25,26 @@ if (!$SkipBuild) {
     if ($LASTEXITCODE -ne 0) { throw 'Build Maven falhou. Confira JDK 25 e mirror corporativo em docs/WINDOWS.md.' }
 }
 if (!(Test-Path -LiteralPath $jar)) { throw 'JAR ausente. Use o ZIP completo ou execute sem -SkipBuild.' }
+$required = @{}
+if ($Runner -in @('bruno', 'both')) { $required['@usebruno/cli'] = '4.0.0' }
+if ($Runner -in @('postman', 'both')) { $required['newman'] = '6.2.2' }
+$installed = $null
+try {
+    $listing = & $npm list -g --depth=0 --json 2>$null
+    if ($LASTEXITCODE -eq 0) { $installed = ($listing -join "`n" | ConvertFrom-Json).dependencies }
+} catch { $installed = $null }
 $packages = @()
-if ($Runner -in @('bruno', 'both')) { $packages += '@usebruno/cli@4.0.0' }
-if ($Runner -in @('postman', 'both')) { $packages += 'newman@6.2.2' }
-& $npm install -g @packages
-if ($LASTEXITCODE -ne 0) { throw 'Instalacao npm falhou. Confira registry, proxy e CA corporativos.' }
+foreach ($package in $required.Keys) {
+    if (!$installed -or !$installed.$package -or $installed.$package.version -ne $required[$package]) {
+        $packages += ($package + '@' + $required[$package])
+    }
+}
+if ($packages.Count -gt 0) {
+    & $npm install -g @packages
+    if ($LASTEXITCODE -ne 0) { throw 'Instalacao npm falhou. Confira registry, proxy, CA e permissoes de subprocessos.' }
+} else {
+    Write-Host 'Versoes npm requeridas ja instaladas; verificando funcionamento no diagnostico.'
+}
 & $java -cp $jar com.microsoft.playwright.CLI install chromium
 if ($LASTEXITCODE -ne 0) { throw 'Instalacao Chromium falhou. Confira proxy, CA e PLAYWRIGHT_DOWNLOAD_HOST.' }
 $runners = if ($Runner -eq 'both') { @('bruno', 'postman') } else { @($Runner) }

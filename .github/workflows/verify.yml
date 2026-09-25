@@ -9,7 +9,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        # Playwright 1.40 ships native dependency definitions through Ubuntu 22.04.
+        os: [ubuntu-22.04, windows-2022]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -39,8 +40,17 @@ jobs:
         run: java -jar target/gerador-docs-tests-3.0.0.jar --doctor --runner bruno
       - name: Real runner and PDF regression
         run: python scripts/integration_test.py
+      - name: Windows PowerShell 5.1 regression
+        if: runner.os == 'Windows'
+        run: python scripts/integration_test.py --powershell powershell --output output/evidence/powershell51
+      - name: Windows native launchers and diagnostics
+        if: runner.os == 'Windows'
+        run: python scripts/windows_validation.py --output output/evidence/windows
       - name: Package distribution
         run: python scripts/package_distribution.py
+      - name: Windows end-user ZIP without Maven
+        if: runner.os == 'Windows'
+        run: python scripts/distribution_test.py
       - name: Upload evidence and distribution
         if: always()
         uses: actions/upload-artifact@v4

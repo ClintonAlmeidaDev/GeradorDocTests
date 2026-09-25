@@ -1,0 +1,8 @@
+name: LOCAL
+variables:
+  - name: baseUrl
+    value: http://127.0.0.1:8765
+  - name: clientId
+    value: fictional-audit-client
+  - name: clientSecret
+    value: FICTIONAL_CLIENT_SECRET_7934

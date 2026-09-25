@@ -7,8 +7,19 @@ mkdir -p audit-output audit-artifacts
 run_dir=$(mktemp -d audit-output/ci-XXXXXXXX)
 java_cmd=java
 if [ -n "${JAVA_HOME:-}" ]; then java_cmd="$JAVA_HOME/bin/java"; fi
-"$java_cmd" -jar "$jar" "$@" --output-dir "$run_dir"
+audit_args=()
+inserted=false
+for arg in "$@"; do
+  if [ "$inserted" = false ] && { [ "$arg" = -- ] || [ "$arg" = --tool-args ]; }; then
+    audit_args+=(--output-dir "$run_dir")
+    inserted=true
+  fi
+  audit_args+=("$arg")
+done
+if [ "$inserted" = false ]; then audit_args+=(--output-dir "$run_dir"); fi
+"$java_cmd" -jar "$jar" "${audit_args[@]}"
 audit_status=$?
+case "$audit_status" in 0|1|2) ;; *) audit_status=2 ;; esac
 find "$run_dir" -maxdepth 1 -type f \( -name '*.pdf' -o -name '*.audit-run.json' \) -exec cp -- '{}' audit-artifacts/ \;
 publish_status=$?
 if [ "$publish_status" -ne 0 ]; then audit_status=2; fi

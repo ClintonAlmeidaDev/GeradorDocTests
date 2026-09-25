@@ -13,10 +13,13 @@ import shutil
 import subprocess
 import threading
 import uuid
+import platform
+from corporate_fixture import CorporateHandler, CLIENT_SECRET, TOKEN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--jar', default='target/gerador-docs-tests-3.0.0.jar')
 parser.add_argument('--output', default='output/evidence')
+parser.add_argument('--powershell', help='Windows PowerShell executable; defaults to pwsh or powershell')
 args = parser.parse_args()
 jar = Path(args.jar).resolve()
 java = str(Path(os.environ['JAVA_HOME']) / 'bin' / 'java') if os.environ.get('JAVA_HOME') else 'java'
@@ -46,6 +49,8 @@ for key in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy
     env.pop(key, None)
 env['NO_PROXY'] = '127.0.0.1,localhost'
 results = []
+corporate_server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), CorporateHandler)
+threading.Thread(target=corporate_server.serve_forever, daemon=True).start()
 try:
     for runner in ('bruno', 'postman'):
         for state, expected in (('pass', 0), ('fail', 1)):
@@ -75,6 +80,7 @@ try:
             run = subprocess.run(command, env=env, text=True, encoding='utf-8', errors='replace', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=180)
             assert run.returncode == expected, (runner, state, run.returncode, run.stdout)
             assert secret not in run.stdout
+            assert 'Downloading ' not in run.stdout, 'Auditing must not provision browsers'
             pdfs = list((dest / 'reports').glob('*.pdf'))
             assert len(pdfs) == 1 and pdfs[0].stat().st_size > 1000
             assert pdfs[0].name.endswith(state.upper() + '.pdf')
@@ -90,6 +96,15 @@ try:
                 assert secret not in text
                 assert 'Página' in text and 'Payload Recebido' in text
                 assert 'Evidência' in text or 'EVIDÊNCIA' in text
+            else:
+                try:
+                    from pypdf import PdfReader
+                except ImportError:
+                    print('PDF text check unavailable: install pypdf or pdftotext', flush=True)
+                else:
+                    text = '\n'.join(page.extract_text() for page in PdfReader(pdfs[0]).pages)
+                    assert secret not in text
+                    assert 'Página' in text and 'Payload Recebido' in text
             results.append({'runner': runner, 'scenario': state, 'exitCode': run.returncode, 'pdf': str(pdfs[0]), 'manifest': str(manifest)})
             print(runner, state, 'OK; PDF:', pdfs[0], flush=True)
     # Reproduce an OpenCollection tree with 45 requests, named YAML environment,
@@ -154,18 +169,68 @@ runtime:
         if os.name == 'posix': assert raw.stat().st_mode & 0o077 == 0
         raw.unlink()  # deliberately sensitive fixture; do not retain in delivered evidence
     print('Technical exit codes and explicit retention: OK', flush=True)
-    ci = root / 'ci'
-    ci.mkdir()
-    ci_launcher = ['pwsh', '-NoProfile', '-File', str(Path('scripts/run_ci.ps1').resolve())] if os.name == 'nt' else ['bash', str(Path('scripts/run_ci.sh').resolve())]
-    ci_run = subprocess.run(ci_launcher + [ '--collection', str(collection), '--environment-file', str(environment)],
-                            cwd=ci, env=dict(env, AUDIT_JAR=str(jar)), capture_output=True, timeout=180)
-    assert ci_run.returncode == 1, ci_run.stderr.decode()
-    assert list((ci / 'audit-artifacts').glob('*.pdf'))
-    assert list((ci / 'audit-artifacts').glob('*.audit-run.json'))
-    assert not list((ci / 'audit-artifacts').glob('*.raw.json'))
-    assert (ci / 'audit-artifacts/exit-code.txt').read_text(encoding='utf-8').strip() == '1'
-    print('CI staging preserves functional failure and publishes evidence: OK', flush=True)
+    # A representative service-to-service workflow, entirely on loopback.
+    corporate = root / 'corporate-collection'
+    shutil.copytree('examples/bruno-corporate', corporate)
+    local_env = corporate / 'environments/LOCAL.yml'
+    local_env.write_text(local_env.read_text(encoding='utf-8').replace(
+        'http://127.0.0.1:8765', f'http://127.0.0.1:{corporate_server.server_port}'), encoding='utf-8')
+    for state, expected in (('pass', 0), ('fail', 1)):
+        if state == 'fail':
+            request = corporate / 'HOMOLOGACAO/Pedidos/02-create.yml'
+            request.write_text(request.read_text(encoding='utf-8').replace(
+                'to.equal("APPROVED")', 'to.equal("REJECTED")'), encoding='utf-8')
+        reports = root / ('corporate-' + state)
+        run = subprocess.run([java, '-jar', str(jar), '--collection', str(corporate),
+                              '--folder', 'HOMOLOGACAO', '--bruno-env', 'LOCAL',
+                              '--output-dir', str(reports), '--diagnostics', '--', '--noproxy'],
+                             env=env, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=180)
+        assert run.returncode == expected, (state, run.stdout, run.stderr)
+        normalized = next(reports.glob('*.sanitized.json')).read_text(encoding='utf-8')
+        for value in (CLIENT_SECRET, TOKEN):
+            assert value not in normalized + run.stdout + run.stderr
+        manifest = next(reports.glob('*.audit-run.json'))
+        report = json.loads(manifest.read_text(encoding='utf-8'))
+        assert len(report['requests']) == 5, report['summary']
+        assert report['summary']['failedRequests'] == expected, report['summary']
+        pdf = next(reports.glob('*.pdf'))
+        assert pdf.stat().st_size > 1000
+        try:
+            from pypdf import PdfReader
+        except ImportError:
+            pass
+        else:
+            pdf_text = '\n'.join(page.extract_text() for page in PdfReader(pdf).pages)
+            assert CLIENT_SECRET not in pdf_text and TOKEN not in pdf_text
+        results.append({'runner': 'bruno', 'scenario': 'corporate-' + state, 'exitCode': expected,
+                        'pdf': str(pdf), 'manifest': str(manifest)})
+        print('Corporate authentication/orders/negative cases:', state, 'OK', flush=True)
+    powershell = args.powershell or shutil.which('pwsh') or shutil.which('powershell')
+    ci_launcher = [powershell, '-NoProfile', '-File', str(Path('scripts/run_ci.ps1').resolve())] if os.name == 'nt' else ['bash', str(Path('scripts/run_ci.sh').resolve())]
+    for state, expected in (('pass', 0), ('fail', 1), ('technical', 2)):
+        ci = root / ('ci-' + state)
+        ci.mkdir()
+        fixture = root / ('postman-' + state)
+        ci_args = ['--collection', str(fixture / 'fixture.postman_collection.json')]
+        if expected != 2:
+            ci_args += ['--environment-file', str(fixture / 'hml.postman_environment.json'),
+                        '--', '--timeout-request', '10000']
+        ci_run = subprocess.run(ci_launcher + ci_args, cwd=ci,
+                                env=dict(env, AUDIT_JAR=str(jar)), capture_output=True, timeout=180)
+        assert ci_run.returncode == expected, (state, ci_run.stdout.decode(errors='replace'), ci_run.stderr.decode(errors='replace'))
+        artifacts = ci / 'audit-artifacts'
+        if expected != 2:
+            assert len(list(artifacts.glob('*.pdf'))) == 1
+            assert len(list(artifacts.glob('*.audit-run.json'))) == 1
+        assert all(p.name == 'exit-code.txt' or p.name.endswith(('.pdf', '.audit-run.json')) for p in artifacts.iterdir())
+        assert (artifacts / 'exit-code.txt').read_text(encoding='utf-8').strip() == str(expected)
+        print('CI staging', state, 'preserves exit', expected, 'and allowed artifacts: OK', flush=True)
+    (root / 'platform.json').write_text(json.dumps({'platform': platform.platform(),
+        'python': platform.python_version(), 'powershell': powershell if os.name == 'nt' else None}, indent=2), encoding='utf-8')
     (root / 'validation.json').write_text(json.dumps(results, indent=2), encoding='utf-8')
 finally:
     server.shutdown()
+    server.server_close()
+    corporate_server.shutdown()
+    corporate_server.server_close()
 print('EVIDENCE_DIR=' + str(root), flush=True)
