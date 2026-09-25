@@ -1,0 +1,23 @@
+info:
+  name: Reject a negative amount as a business validation
+  type: http
+  seq: 5
+http:
+  method: post
+  url: "{{baseUrl}}/orders"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: '{"customerId":"CUSTOMER-FICTITIOUS-001","amount":-1,"currency":"BRL"}'
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Invalid amount rejected", () => { expect(res.getStatus()).to.equal(422); });
+        test("Business error code", () => { expect(res.getBody().code).to.equal("INVALID_AMOUNT"); });
+settings:
+  timeout: 10000

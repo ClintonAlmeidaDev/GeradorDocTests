@@ -1,0 +1,18 @@
+info:
+  name: Read the created order
+  type: http
+  seq: 3
+http:
+  method: get
+  url: "{{baseUrl}}/orders/{{orderId}}"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Order exists", () => { expect(res.getStatus()).to.equal(200); });
+        test("Identifier matches", () => { expect(res.getBody().id).to.equal(bru.getVar("orderId")); });
+settings:
+  timeout: 10000

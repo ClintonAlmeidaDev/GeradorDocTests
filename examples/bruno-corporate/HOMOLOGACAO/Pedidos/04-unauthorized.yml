@@ -1,0 +1,15 @@
+info:
+  name: Reject a request without authentication
+  type: http
+  seq: 4
+http:
+  method: get
+  url: "{{baseUrl}}/orders/ORDER-FICTITIOUS-001"
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Authentication enforced", () => { expect(res.getStatus()).to.equal(401); });
+        test("Stable error code", () => { expect(res.getBody().code).to.equal("UNAUTHORIZED"); });
+settings:
+  timeout: 10000

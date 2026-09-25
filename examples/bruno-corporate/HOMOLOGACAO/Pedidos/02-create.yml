@@ -1,0 +1,29 @@
+info:
+  name: Create an order with correlation and idempotency
+  type: http
+  seq: 2
+http:
+  method: post
+  url: "{{baseUrl}}/orders"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+    - name: Content-Type
+      value: application/json
+    - name: X-Correlation-ID
+      value: fictional-correlation-001
+    - name: Idempotency-Key
+      value: fictional-order-001
+  body:
+    type: json
+    data: '{"customerId":"CUSTOMER-FICTITIOUS-001","amount":125.50,"currency":"BRL"}'
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Order created", () => { expect(res.getStatus()).to.equal(201); });
+        test("Business approval", () => { expect(res.getBody().status).to.equal("APPROVED"); });
+        test("Amount preserved", () => { expect(res.getBody().amount).to.equal(125.50); });
+        bru.setVar("orderId", res.getBody().id);
+settings:
+  timeout: 10000
