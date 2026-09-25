@@ -33,8 +33,15 @@ public final class EnvironmentDoctor {
                                 .getOrDefault(variable, runner.equals("bruno") ? "bru" : "newman"),
                         variable);
         LOG.info("Runner {} versão {}: OK ({})", runner, probe.version(), probe.command().mode());
-        Files.createDirectories(options.outputDir());
-        Path test = Files.createTempFile(options.outputDir(), "doctor-", ".pdf");
+        Path test;
+        try {
+            Files.createDirectories(options.outputDir());
+            test = Files.createTempFile(options.outputDir(), "doctor-", ".pdf");
+        } catch (java.io.IOException | SecurityException e) {
+            throw new IllegalStateException(
+                    "Diretório de saída indisponível para escrita. Confira --output-dir,"
+                            + " permissões da conta e a política de proteção de pastas do Windows.");
+        }
         try {
             try (Playwright playwright =
                     Playwright.create(

@@ -15,7 +15,7 @@ public final class RunnerProbe {
         var command = RunnerCommandResolver.resolve(executable, variable);
         List<String> args = new ArrayList<>(command.prefix());
         args.add("--version");
-        ProcessBuilder builder = new ProcessBuilder(args).redirectErrorStream(true);
+        ProcessBuilder builder = new ProcessBuilder(ProcessArguments.literal(args)).redirectErrorStream(true);
         builder.environment().clear();
         builder.environment().putAll(command.environment());
         Process process;
@@ -50,8 +50,11 @@ public final class RunnerProbe {
                                     }
                                 });
         try {
-            if (!process.waitFor(15, TimeUnit.SECONDS))
-                throw new IllegalStateException("Timeout ao consultar --version do runner.");
+            // Cold npm startup on Windows can exceed 15 seconds (observed with Newman).
+            if (!process.waitFor(60, TimeUnit.SECONDS))
+                throw new IllegalStateException(
+                        "Timeout de 60 segundos ao consultar --version do runner. Confira Node,"
+                                + " integridade da instalação npm e proteção de processos do Windows.");
             drain.join(2000);
             String captured;
             synchronized (output) {
