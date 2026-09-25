@@ -35,6 +35,6 @@ O template Jenkins exige agente previamente provisionado com Java/Node e bibliot
 
 ## Windows e regressão nativa
 
-Use `scripts/run_ci.ps1` no PowerShell. Assim como o script Bash, ele publica somente PDF e manifesto em `audit-artifacts`, grava `exit-code.txt` e preserva o código 1 para falhas funcionais. `AUDIT_JAR` aceita um caminho absoluto.
+Use `scripts/run_ci.ps1` no Windows PowerShell 5.1 ou PowerShell 7. Assim como o script Bash, ele publica somente PDF e manifesto em `audit-artifacts`, grava `exit-code.txt` e preserva os códigos 0/1/2. `AUDIT_JAR` aceita um caminho absoluto. As opções internas são inseridas antes de `--`/`--tool-args`, para que o pass-through do runner não receba `--output-dir`. `.gitattributes` mantém scripts Bash com LF mesmo em checkouts Windows.
 
-`.github/workflows/verify.yml` compila com Java 25 e executa runners reais e Chromium em Ubuntu e Windows. A regressão cobre OpenCollection YAML com ambiente nomeado, scripts de testes, pastas aninhadas, caminhos com espaços/acentos e seleção de HOMOLOGACAO; o job Windows também executa o setup PowerShell. Os artefatos publicados não incluem reporters brutos.
+`.github/workflows/verify.yml` compila com Java 25 e executa runners reais e Chromium em Ubuntu e Windows. A regressão cobre OpenCollection YAML com ambiente nomeado, scripts de testes, pastas aninhadas, caminhos com espaços/acentos, seleção de HOMOLOGACAO e o fluxo corporativo fictício. O job Windows também cobre os dois PowerShells, diagnóstico nativo e ZIP sem Maven. Os artefatos publicados não incluem reporters brutos. Ubuntu 22.04 foi escolhido porque o Playwright 1.40 fixado no projeto inclui definições de dependências nativas até essa versão; isso não equivale a uma nova execução Linux concluída.

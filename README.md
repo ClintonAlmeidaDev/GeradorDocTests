@@ -1,5 +1,7 @@
 # GeradorDocsTests 3.0.0
 
+**Quer apenas executar sua collection e abrir o PDF? Comece pelo [guia simples para Windows](INICIAR_AQUI.md).** Ele mostra o preparo inicial e os comandos para Bruno/Postman, sem exigir Maven ou conhecimento de programação.
+
 CLI Java 25 que executa collections **Bruno e Postman/Newman** e gera uma evidência corporativa em PDF. O mesmo domínio, sanitizador e template atendem ambos os runners. Uma assertion falha mantém a evidência e retorna código 1 para o pipeline, mesmo quando o HTTP é 200/201.
 
 ```mermaid
@@ -102,4 +104,6 @@ A disponibilização sob MIT pressupõe que os titulares dos direitos autorais a
 
 ## Windows e instalação corporativa
 
-Veja [o guia de Windows 11 e PowerShell](docs/WINDOWS.md) para instalação sem Maven, mirror corporativo, seleção de pastas/ambientes e diagnóstico. Após instalar, execute `java -jar target/gerador-docs-tests-3.0.0.jar --doctor --runner bruno`. Use `--folder HOMOLOGACAO` para limitar a execução recursiva a uma pasta da collection.
+Veja [o guia de Windows 10/11 e PowerShell](docs/WINDOWS.md) para instalação sem Maven, mirror corporativo, seleção de pastas/ambientes e diagnóstico. A validação nativa atual foi realizada no Windows 10, com PowerShell 5.1 e 7; Windows 11 ainda exige homologação própria. Após instalar, execute `java -jar target/gerador-docs-tests-3.0.0.jar --doctor --runner bruno`. Use `--folder HOMOLOGACAO` para limitar a execução recursiva a uma pasta da collection.
+
+A [collection corporativa fictícia](examples/bruno-corporate/README.md) permite reproduzir autenticação, propagação de variáveis, pedidos e respostas negativas em uma API local, sem credenciais ou serviços reais. Os resultados observados estão em [VALIDATION.md](docs/VALIDATION.md).

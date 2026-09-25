@@ -1,6 +1,6 @@
 # Instalação
 
-Para Windows 11, PowerShell, uso sem Maven e Artifactory/Nexus, siga [Windows e rede corporativa](WINDOWS.md).
+Para Windows 10/11, PowerShell, uso sem Maven e Artifactory/Nexus, siga [Windows e rede corporativa](WINDOWS.md).
 
 Use Java 25 (o pom compila com release 25), Maven 3.8.7 ou superior e Node 22. Os runners verificados foram Bruno CLI 4.0.0 e Newman 6.2.2. Playwright/Jackson/Thymeleaf foram mantidos nas versões existentes; somente YAML, logging e infraestrutura de testes/build foram acrescentados.
 
@@ -29,7 +29,7 @@ export NEWMAN_EXECUTABLE="$(command -v newman)"
 
 Alternativamente defina o caminho absoluto da instalação. O executor acrescenta o diretório do executável ao PATH dos processos filhos, permitindo localizar o Node instalado junto dele. `NODE_OPTIONS` é herdado sem sobrescrita; se um Node antigo realmente exigir WebCrypto, configure-o externamente. Node 22 não exigiu esse ajuste.
 
-Linux foi validado end-to-end. O executor Windows resolve launchers npm via Node e possui testes de resolução e um job de integração nativo no CI. macOS deve usar executáveis no PATH. Para CI Windows, use `scripts/run_ci.ps1`; para Linux, `scripts/run_ci.sh`. Confira o status do CI para a validação nativa Windows.
+Linux tem validação histórica end-to-end. A rodada nativa atual cobre Windows 10, launchers npm reais, Windows PowerShell 5.1 e PowerShell 7; Windows 11 não foi executado nesta máquina. macOS deve usar executáveis no PATH, mas não foi homologado. Para CI Windows, use `scripts/run_ci.ps1`; para Linux, `scripts/run_ci.sh`. Consulte [VALIDATION.md](VALIDATION.md) para distinguir resultados locais e remotos.
 
 ## Selecionar o JDK 25
 

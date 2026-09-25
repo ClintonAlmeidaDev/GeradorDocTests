@@ -1,6 +1,6 @@
 # Segurança e tratamento de evidência
 
-PDF sanitizado **não significa** reporter bruto seguro. Bruno/Newman podem incluir headers, cookies, tokens de auth, variáveis e bodies nos resultados. O fluxo padrão cria diretório temporário privado (0700 em POSIX), executa o reporter ali e remove arquivo/diretório no `finally`, também após falhas do parser/Chromium. Em Windows as permissões seguem as ACLs da conta; essa plataforma não foi validada.
+PDF sanitizado **não significa** reporter bruto seguro. Bruno/Newman podem incluir headers, cookies, tokens de auth, variáveis e bodies nos resultados. O fluxo padrão cria diretório temporário privado (0700 em POSIX), executa o reporter ali e remove arquivo/diretório no `finally`, também após falhas do parser/Chromium. Em Windows as permissões seguem as ACLs da conta. A rodada no Windows 10 verificou remoção após parsing inválido, retenção explícita e diagnóstico de saída bloqueada por ACL; isso não é uma auditoria geral das permissões do ambiente corporativo.
 
 `--keep-raw-results` copia o reporter para `<uuid>.raw.json`, aplica 0600 em POSIX e registra aviso. É opção de diagnóstico explícita, não deve ser usada nos templates de CI. `.gitignore` exclui esses outputs. Remoção normal não é apagamento criptográfico; kill -9, queda da máquina ou falta de permissão podem deixar temporários no diretório temporário do SO. Use agentes efêmeros, criptografia de disco e política de retenção.
 

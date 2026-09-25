@@ -1,5 +1,64 @@
 # Relatório de entrega e validação
 
+## Validação nativa Windows 10 — 24/09/2026
+
+Esta seção é o registro atual. As seções seguintes preservam o histórico de Linux e da migração Java; suas limitações antigas não substituem os resultados abaixo. Para o usuário final, a entrada recomendada é [INICIAR_AQUI.md](../INICIAR_AQUI.md).
+
+### Ambiente realmente utilizado
+
+| Componente | Versão |
+|---|---|
+| Sistema | Windows 10 Pro 22H2, build 19045.3448, x64 |
+| Windows PowerShell | 5.1.19041.3031 |
+| PowerShell | 7.6.6 |
+| Java | Eclipse Temurin 25.0.4.1+1 LTS |
+| Maven | 3.9.6 |
+| Node / npm | 22.23.3 / 10.9.9 |
+| Bruno CLI / Newman | 4.0.0 / 6.2.2 |
+| Playwright / Chromium | Java 1.40.0 / 120.0.6099.28 (build 1091) |
+| Python | 3.12.14 |
+
+O Java 18 e Node 24 encontrados inicialmente não foram substituídos globalmente. JDK 25, Node 22, PowerShell 7, npm, runners e navegador foram provisionados em diretórios isolados da validação. Não foram alterados settings corporativos, TLS ou registries globais.
+
+### Defeitos reproduzidos e ajustes
+
+- O `ProcessBuilder` Windows, no modo legado do JDK, alterava um argumento com aspas internas antes de entregá-lo ao Node. A serialização nativa foi corrigida e testada com aspas, barras finais, valores vazios, espaços, acentos, `&` e `%PATH%` literal, sem shell. O caminho Linux permanece inalterado.
+- Newman levou aproximadamente 23 segundos para responder a `--version`; o limite anterior de 15 segundos produziu um diagnóstico falso de falha. O limite agora é 60 segundos.
+- A geração de PDF tentava provisionar Firefox mesmo com Chromium instalado. Auditorias agora usam apenas o navegador previamente provisionado e não fazem downloads automáticos.
+- Os wrappers de CI acrescentavam `--output-dir` depois do pass-through `--`, enviando uma opção interna ao runner. PowerShell e Bash agora inserem a opção antes desse delimitador; a integração com pass-through verificou os códigos 0/1/2 e o conteúdo publicado.
+- `audit.ps1` preserva argumentos literais no PowerShell 5.1/7 e normaliza falhas de inicialização para código 2. Uma regressão reproduzida após `Set-Location`/`cd` foi corrigida explicitando o diretório de trabalho do Java; collections e saídas relativas passaram a acompanhar a pasta atual nos dois PowerShells. `setup.ps1` verifica versões antes da instalação e reaproveita runners na versão requerida. Um JDK 18 foi rejeitado antes de instalar pacotes.
+- A mensagem de saída sem escrita orienta verificar `--output-dir` e permissões, sem imprimir a exceção bruta. A fixture confirmou tanto caminho ocupado por arquivo quanto negação real de escrita por ACL; a ACL temporária foi restaurada.
+- `.gitattributes` conserva LF nos scripts Bash/Python ao trabalhar no Windows. O empacotador também normaliza o Bash no ZIP, pois o checkout anterior ainda continha CRLF, e recusa um JAR sem a CLI/dependências obrigatórias. O workflow Linux foi alinhado ao Ubuntu 22.04, presente nas definições de dependências do Playwright 1.40; esse ajuste ainda exige execução remota.
+
+### Testes concluídos
+
+- Maven `package` e `setup.ps1 -Runner both` com build no PowerShell 7: **BUILD SUCCESS**. Suíte final: **39 testes encontrados, 31 executados, 0 falhas/erros, 8 ignorados por serem exclusivos de POSIX**. Cinco testes novos executam Node nativamente no Windows, incluindo limpeza após parsing inválido e retenção explícita.
+- Integração completa repetida com **Windows PowerShell 5.1 e PowerShell 7**: Bruno/Newman PASS/FAIL, PDFs, JSON sanitizado, manifests, ambientes, códigos técnicos, retenção explícita e staging de CI aprovados. O staging publicou somente PDF, manifesto e `exit-code.txt`, mantendo 0/1/2 mesmo com argumentos após `--`.
+- OpenCollection aninhada: **45 requests, 10 aprovadas/35 falhas**, PDF e código 1; com `--folder HOMOLOGACAO`: **15 requests, 10 aprovadas/5 falhas**, PDF e código 1. Ambiente HML nomeado e arquivo de ambiente também foram exercitados.
+- Bruno executado diretamente contra a API fictícia local: **5 requests aprovados e 11/11 testes**. O fluxo usa token, propagação de variáveis, headers de correlação/idempotência, pedido e respostas negativas esperadas 401/422. Pelo gerador, a variante de negócio FAIL mantém HTTP 201, falha a assertion, gera evidência e retorna 1.
+- `windows_validation.py`: **16 cenários aprovados**, cobrindo PATH, APPDATA/npm, `BRU_EXECUTABLE`, `NEWMAN_EXECUTABLE`, `NODE_EXECUTABLE`, prefixos reais com espaços/acentos/`&`/`%`, Node ausente, npm incompleto, configuração inválida, Chromium ausente, escrita negada, argumentos literais, runner sem reporter e JAR ausente nos dois PowerShells.
+- Texto dos PDFs extraído com pypdf: segredos fictícios ausentes, conteúdo e rodapé presentes. PDF corporativo aberto e primeira página renderizada para inspeção visual; isso não é inspeção visual de todas as páginas de todos os relatórios.
+- ZIP extraído em outra pasta com espaços, acentos, `&` e `%`: `setup.ps1 -SkipBuild`, diagnóstico e geração de PDF concluídos tanto no PowerShell 5.1 quanto no 7, com Maven removido do PATH. O conteúdo verificado inclui licença, documentação, scripts, guia simples e fixture corporativa local.
+- Sintaxe de `run_ci.sh` e contratos de pass-through, códigos 0/1/2 e seleção de artefatos verificados com Git Bash e processo fictício local. Isso não é uma execução nativa Linux.
+
+Evidências locais, ignoradas pelo Git:
+
+- `output/evidence/Coleção & Empresa 100% dc9f8a75/validation.json`: integração com PowerShell 5.1.
+- `output/evidence/Coleção & Empresa 100% 586310cd/validation.json`: repetição com PowerShell 7.
+- `output/windows/Validação & 100% 6daec076/validation.json`: regressão nativa Windows.
+- `output/Distribuição ZIP & 100% */validation.json`: extrações e smoke tests da distribuição; cada resumo aponta para seu PDF.
+- `target/gerador-docs-tests-3.0.0-distribution.zip`: distribuição empacotada.
+
+### Limites desta rodada
+
+**Windows 11 não foi executado.** Linux mantém suporte e validação histórica, mas não foi reexecutado nativamente nesta máquina; não havia distribuição WSL instalada. A execução Git Bash não substitui Linux. A collection, VPN, credenciais e APIs corporativas reais não foram acessadas: todas as chamadas desta rodada usaram loopback e dados fictícios.
+
+O [CI do commit base 1293e2d](https://github.com/ClintonAlmeidaDev/GeradorDocTests/actions/runs/36078270941) foi consultado e estava com falha. A API permitiu consultar etapas/anotações, mas respondeu 403 ao download dos logs detalhados; não foi confirmada a causa completa da falha remota. Os ajustes desta rodada não devem ser apresentados como CI remoto aprovado sem um novo run.
+
+Falhas `EPERM` e bloqueios de criação de processos no sandbox da ferramenta foram separados das falhas do produto; os testes de browser/runners foram repetidos fora desse sandbox, com os mesmos caches isolados. A hipótese de ausência de recursão não foi confirmada: `-r` já existia. Os resultados locais não provam a causa do erro original da empresa nem garantem ausência de outros defeitos.
+
+---
+
 Registro da entrega original 3.0.0 com Java 21, 24/09/2026. A migração posterior para Java 25 está registrada ao final. Alterações deixadas na working tree, sem commits. Os arquivos previamente adicionados pelo usuário foram preservados no índice.
 
 | Escopo | Status |
