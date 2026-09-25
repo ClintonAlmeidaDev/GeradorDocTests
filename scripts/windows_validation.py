@@ -110,11 +110,11 @@ for shell in ('powershell', 'pwsh'):
     if not executable:
         raise AssertionError(shell + ' must be installed to validate both supported PowerShell versions')
     command = [executable, '-NoProfile', '-File', str(repo / 'scripts/audit.ps1'),
-               '--collection', str(collection), '--output-dir', str(root / shell), '--diagnostics', '--']
+               '--collection', 'collection', '--output-dir', shell, '--diagnostics', '--']
     # -File itself loses embedded quotes under Windows PowerShell when called by another
     # native program. Encode the invocation as PowerShell source with literal array values.
     audit_args = command[4:] + literal
-    script = "$ProgressPreference='SilentlyContinue'; $auditArgs=@(" + ','.join(
+    script = "$ProgressPreference='SilentlyContinue'; Set-Location -LiteralPath '" + str(root).replace("'", "''") + "'; $auditArgs=@(" + ','.join(
         "'" + value.replace("'", "''") + "'" for value in audit_args) + "); & '" + str(
             repo / 'scripts/audit.ps1').replace("'", "''") + "' @auditArgs; exit $LASTEXITCODE"
     import base64
@@ -123,6 +123,7 @@ for shell in ('powershell', 'pwsh'):
         {'AUDIT_JAR': str(jar), 'BRU_EXECUTABLE': str(fake), 'NODE_EXECUTABLE': str(node)}, '--doctor')
     actual = json.loads(argv_file.read_text(encoding='utf-8'))
     assert actual[3:3 + len(literal)] == literal, (shell, actual)
+    assert (root / shell).is_dir(), 'Relative output must follow PowerShell Set-Location'
     run(shell + ' missing JAR', [executable, '-NoProfile', '-File', str(repo / 'scripts/audit.ps1'), '--version'],
         2, {'AUDIT_JAR': str(root / 'missing.jar')}, 'JAR')
 (root / 'validation.json').write_text(json.dumps(results, indent=2), encoding='utf-8')

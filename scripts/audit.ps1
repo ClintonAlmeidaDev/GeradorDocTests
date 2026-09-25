@@ -17,6 +17,8 @@ try {
     $start.FileName = $java
     $start.Arguments = $encoded -join ' '
     $start.UseShellExecute = $false
+    # Set-Location does not change the .NET process current directory on Windows.
+    $start.WorkingDirectory = (Get-Location).ProviderPath
     $process = [System.Diagnostics.Process]::Start($start)
     try {
         $process.WaitForExit()
