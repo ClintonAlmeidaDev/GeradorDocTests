@@ -6,12 +6,15 @@ import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.Margin;
 
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class AuditReportGenerator {
 
     public static void generatePdfFromHtml(String htmlContent, String outputPath) {
 
-        try (Playwright playwright = Playwright.create()) {
+        // Provision Chromium explicitly with setup/CLI. Auditing must not download other browsers.
+        try (Playwright playwright = Playwright.create(new Playwright.CreateOptions()
+                .setEnv(Map.of("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1")))) {
 
             Browser browser = playwright.chromium().launch();
 
