@@ -23,6 +23,39 @@ class ExecutorTest {
     }
 
     @Test
+    void brunoAlwaysRecursesAndPreservesLiteralArguments() throws Exception {
+        Path arguments = temp.resolve("arguments.txt");
+        Path script =
+                executable(
+                        "printf '%s\\n' \"$@\" > '"
+                                + arguments
+                                + "'\nfor arg do out=\"$arg\"; done\nprintf '[{}]' > \"$out\"\n");
+        Path report = temp.resolve("output with spaces/result.json");
+        var extra = List.of("-r", "--env-var", "value=a b & c% ! literal");
+        new BrunoCliExecutor(script.toString(), extra, 5)
+                .execute(temp.toString(), report.toString());
+        assertEquals(
+                List.of(
+                        "run",
+                        ".",
+                        "-r",
+                        "-r",
+                        "--env-var",
+                        "value=a b & c% ! literal",
+                        "--reporter-json",
+                        report.toString()),
+                Files.readAllLines(arguments));
+    }
+
+    @Test
+    void newmanReporterShortOptionRemainsReserved() throws Exception {
+        var executor = new NewmanExecutor("newman", List.of("-r", "json"), 5);
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> executor.execute("unused.json", "unused-output.json"));
+    }
+
+    @Test
     void processArgumentsWithSpacesAndFreshReporter() throws Exception {
         Path script =
                 executable("for arg do out=\"$arg\"; done\nprintf '[{}]' > \"$out\"\nexit 1\n");

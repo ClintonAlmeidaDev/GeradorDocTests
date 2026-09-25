@@ -32,3 +32,9 @@ python3 scripts/pr_evidence.py --artifact-url 'https://dev.azure.com/ORG/PROJECT
 O script não envia comentários nem faz chamadas autenticadas. O ponto de integração é posterior à publicação: uma etapa corporativa autorizada pode usar API/CLI do provider para comentar o conteúdo de `pr-evidence.md` com suas próprias permissões. Não há token ou URL real hardcoded. Controle acesso e retenção do artifact; um PDF pode conter informações internas mesmo após sanitização.
 
 O template Jenkins exige agente previamente provisionado com Java/Node e bibliotecas nativas do Chromium. O template GitLab usa container Linux x64 e requer rede para instalar Node. Pinagem de imagens/actions por digest/SHA e mirrors internos devem seguir a política de supply chain da empresa.
+
+## Windows e regressão nativa
+
+Use `scripts/run_ci.ps1` no PowerShell. Assim como o script Bash, ele publica somente PDF e manifesto em `audit-artifacts`, grava `exit-code.txt` e preserva o código 1 para falhas funcionais. `AUDIT_JAR` aceita um caminho absoluto.
+
+`.github/workflows/verify.yml` compila com Java 25 e executa runners reais e Chromium em Ubuntu e Windows. A regressão cobre OpenCollection YAML com ambiente nomeado, scripts de testes, pastas aninhadas, caminhos com espaços/acentos e seleção de HOMOLOGACAO; o job Windows também executa o setup PowerShell. Os artefatos publicados não incluem reporters brutos.

@@ -35,3 +35,7 @@ mask-key=cpf,accountNumber
 CLI aceita `--opção=valor` e `--opção valor`. Para pass-through: `--tool-arg=--folder --tool-arg=Payments` ou `-- --folder Payments`. `--tool-args` também inicia a lista literal final. Não se faz divisão por espaços nem avaliação de shell. Opções de reporter/export são reservadas: saídas adicionais do runner contornariam a política de temporários.
 
 Chaves desconhecidas geram erro 2. Caminhos relativos de arquivos de ambiente são resolvidos antes de mudar o diretório do runner. Outros caminhos em pass-through devem ser absolutos; o cwd é o diretório da collection (ou pai do arquivo Postman). Opções antigas de `AuditConfigurationLoader` não participam da nova CLI.
+
+## Diagnóstico e pasta
+
+`--folder` seleciona uma pasta do runner (no Bruno, dentro da raiz da collection, com recursão). `--doctor --runner bruno|postman` verifica somente a instalação local. `--diagnostics` acrescenta informações de execução sem imprimir stdout/stderr bruto nem valores dos argumentos adicionais. Veja [Windows](WINDOWS.md) para exemplos completos.

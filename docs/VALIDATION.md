@@ -81,3 +81,19 @@ Validação executada com Eclipse Temurin **25.0.4.1+1-LTS** (arquivo oficial Ad
 - Evidências desta migração: `output/java25-evidence/92c0f836/validation.json` e PDFs/manifests nos subdiretórios dos runners (outputs locais não versionados).
 
 As bibliotecas da aplicação e as regras de negócio foram mantidas. O Maven 3.8.7 emitiu aviso de depreciação de `sun.misc.Unsafe` vindo da sua própria dependência Guava; isso não impediu testes ou empacotamento. Não foram executados pipelines em provedores remotos.
+
+## Correção Windows / OpenCollection (24/09/2026)
+
+Validação local com JDK 25, Bruno CLI 4.0.0, Newman 6.2.2 e Chromium, em Linux:
+
+- 34 testes unitários, sem falhas; incluem resolução Windows de Path/PATHEXT, APPDATA/npm, Node e caminhos com espaços, acentos, `%` e `&`.
+- `--doctor --runner bruno`: versão do runner, escrita e PDF temporário verificados sem executar APIs.
+- Integração real: Bruno e Newman em PASS e FAIL, produzindo PDF e manifesto com os códigos 0/1 esperados.
+- OpenCollection YAML com 45 requests aninhadas em HOMOLOGACAO, LOCAL e GATEWAY, ambiente HML em YAML e scripts `runtime`: 10 aprovadas, 35 falhas, PDF gerado e código 1.
+- A mesma collection com `--folder HOMOLOGACAO`: 15 requests, 5 falhas, PDF gerado e código 1. As demais pastas não foram incluídas.
+- Erros técnicos retornam 2; retenção explícita do reporter e publicação de evidências no CI preservam os contratos anteriores. Saída bruta do runner não aparece nos logs; a regressão sem reporter verifica dica útil e ausência do segredo fictício.
+- Integridade e conteúdo obrigatório do ZIP de distribuição verificados.
+
+O workflow `.github/workflows/verify.yml` acrescenta a execução nativa em Windows e Linux. O job Windows valida também os scripts PowerShell e os launchers npm reais. Esse job não foi executado nesta máquina Linux; seu resultado deve ser consultado após publicar a branch. A rede e a collection privadas da empresa não foram acessadas.
+
+A hipótese de ausência de recursão do relato não foi confirmada: `-r` já existia. Foram corrigidas lacunas reais no launcher Windows, no bloqueio do pass-through `-r`, na seleção de pasta e na informação disponível quando o reporter não é produzido. O novo diagnóstico ajuda a identificar eventuais particularidades ainda presentes no ambiente corporativo.

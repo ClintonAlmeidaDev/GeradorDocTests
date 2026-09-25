@@ -26,6 +26,11 @@ public class NewmanExecutor implements CollectionExecutor {
     @Override
     public CollectionExecutionResult execute(String collection, String output)
             throws IOException, InterruptedException {
+        for (String arg : extra)
+            if (arg.startsWith("-r"))
+                throw new IllegalArgumentException(
+                        "Newman: -r seleciona reporters e é gerenciado pela ferramenta. Use"
+                            + " --folder para selecionar uma pasta.");
         Path file = Path.of(collection).toAbsolutePath();
         if (!Files.isRegularFile(file)) throw new IOException("Collection Postman inexistente.");
         Path out = Path.of(output).toAbsolutePath();

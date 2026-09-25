@@ -28,7 +28,10 @@ public final class CliOptions {
                     "version",
                     "openapi",
                     "generate",
-                    "collection-name");
+                    "collection-name",
+                    "folder",
+                    "doctor",
+                    "diagnostics");
     private final Map<String, String> values = new LinkedHashMap<>();
     public final List<String> maskKeys = new ArrayList<>(), toolArgs = new ArrayList<>();
 
@@ -48,7 +51,9 @@ public final class CliOptions {
             String key = kv[0];
             if (!ALLOWED.contains(key))
                 throw new IllegalArgumentException("Opção desconhecida: --" + key);
-            boolean flag = Set.of("help", "version", "keep-raw-results").contains(key);
+            boolean flag =
+                    Set.of("help", "version", "keep-raw-results", "doctor", "diagnostics")
+                            .contains(key);
             String val =
                     kv.length == 2 ? kv[1] : flag ? "true" : (++i < args.length ? args[i] : null);
             if (val == null || val.isBlank() || (!key.equals("tool-arg") && val.startsWith("--")))
@@ -110,7 +115,7 @@ public final class CliOptions {
         for (String a : o.toolArgs)
             if (a.startsWith("--reporter")
                     || a.startsWith("--export-")
-                    || Set.of("-o", "--output", "-f", "--format", "-r").contains(a.split("=")[0]))
+                    || Set.of("-o", "--output", "-f", "--format").contains(a.split("=")[0]))
                 throw new IllegalArgumentException(
                         "Argumentos de reporter/export são gerenciados pela ferramenta.");
         return o;

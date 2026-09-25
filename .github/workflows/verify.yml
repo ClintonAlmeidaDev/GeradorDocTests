@@ -1,0 +1,54 @@
+name: Verify Java and native runners
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  integration:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build and unit tests
+        run: mvn -B clean package
+      - name: Install runners
+        run: npm install -g @usebruno/cli@4.0.0 newman@6.2.2
+      - name: Chromium Linux
+        if: runner.os == 'Linux'
+        run: java -cp target/gerador-docs-tests-3.0.0.jar com.microsoft.playwright.CLI install --with-deps chromium
+      - name: Chromium Windows and setup smoke
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/setup.ps1 -SkipBuild -Runner both
+      - name: Local diagnostic
+        run: java -jar target/gerador-docs-tests-3.0.0.jar --doctor --runner bruno
+      - name: Real runner and PDF regression
+        run: python scripts/integration_test.py
+      - name: Package distribution
+        run: python scripts/package_distribution.py
+      - name: Upload evidence and distribution
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-${{ runner.os }}
+          path: |
+            output/evidence/**/*.pdf
+            output/evidence/**/*.audit-run.json
+            output/evidence/**/validation.json
+            target/surefire-reports/*.xml
+            target/*-distribution.zip

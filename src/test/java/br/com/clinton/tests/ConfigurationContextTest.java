@@ -18,6 +18,12 @@ class ConfigurationContextTest {
     @TempDir Path temp;
 
     @Test
+    void brunoRecursivePassThroughIsAccepted() throws Exception {
+        var options = CliOptions.parse(new String[] {"--runner=bruno", "--", "-r"}, Map.of());
+        assertEquals(List.of("-r"), options.toolArgs);
+    }
+
+    @Test
     void precedenceAndRepeatedOptions() throws Exception {
         Path f = temp.resolve("audit.properties");
         Files.writeString(f, "company=File\nenvironment=DEV\nmask-key=cpf\n");

@@ -17,34 +17,25 @@ final class ExternalProcess {
             List<String> args,
             long timeoutSeconds)
             throws IOException, InterruptedException {
-        Path exe = Path.of(executable);
-        String path = System.getenv().getOrDefault("PATH", "");
-        if (exe.isAbsolute() && exe.getParent() != null)
-            path = exe.getParent() + File.pathSeparator + path;
-        boolean found =
-                exe.isAbsolute()
-                        ? Files.isExecutable(exe)
-                        : Arrays.stream(path.split(File.pathSeparator))
-                                .anyMatch(
-                                        p ->
-                                                Files.isExecutable(Path.of(p, executable))
-                                                        || Files.isRegularFile(
-                                                                Path.of(p, executable + ".cmd")));
-        if (!found)
-            throw new IllegalStateException(
-                    (variable.equals("BRU_EXECUTABLE") ? "Bruno CLI" : "Newman")
-                            + " não encontrado. Configure "
-                            + variable
-                            + " ou PATH.");
+        RunnerCommandResolver.Command resolved =
+                RunnerCommandResolver.resolve(executable, variable);
         Files.createDirectories(output.toAbsolutePath().getParent());
         Files.deleteIfExists(output);
-        List<String> command = new ArrayList<>();
-        command.add(executable);
+        List<String> command = new ArrayList<>(resolved.prefix());
         command.addAll(args);
         ProcessBuilder builder =
                 new ProcessBuilder(command).directory(cwd.toFile()).redirectErrorStream(true);
-        builder.environment().put("PATH", path);
-        Process process = builder.start();
+        builder.environment().clear();
+        builder.environment().putAll(resolved.environment());
+        Process process;
+        try {
+            process = builder.start();
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "Não foi possível iniciar o runner. Execute --doctor e confira permissões,"
+                        + " NODE_EXECUTABLE e o launcher configurado.");
+        }
+        RunnerOutputDiagnostics diagnostics = new RunnerOutputDiagnostics();
         // Do not relay arbitrary collection console.log / assertion values to CI logs.
         Thread drain =
                 Thread.ofPlatform()
@@ -52,7 +43,7 @@ final class ExternalProcess {
                         .start(
                                 () -> {
                                     try (var stream = process.getInputStream()) {
-                                        stream.transferTo(OutputStream.nullOutputStream());
+                                        diagnostics.drain(stream);
                                     } catch (IOException ignored) {
                                     }
                                 });
@@ -65,7 +56,9 @@ final class ExternalProcess {
             LoggerFactory.getLogger(ExternalProcess.class)
                     .info("Executor concluído (código {}).", process.exitValue());
             return new CollectionExecutionResult(
-                    process.exitValue(), Files.isRegularFile(output) && Files.size(output) > 0);
+                    process.exitValue(),
+                    Files.isRegularFile(output) && Files.size(output) > 0,
+                    diagnostics.hints());
         } catch (InterruptedException e) {
             terminate(process);
             Thread.currentThread().interrupt();
@@ -76,5 +69,10 @@ final class ExternalProcess {
     private static void terminate(Process p) {
         p.descendants().forEach(ProcessHandle::destroyForcibly);
         p.destroyForcibly();
+        try {
+            p.waitFor(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
