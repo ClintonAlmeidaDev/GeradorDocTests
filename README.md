@@ -99,3 +99,7 @@ Ao copiar ou redistribuir o software ou partes substanciais dele, mantenha o avi
 Esta licença se aplica ao código original do projeto; bibliotecas, runners, navegador e outros componentes de terceiros mantêm suas próprias licenças e avisos. O JAR inclui dependências: sua redistribuição também deve respeitar essas condições. A inclusão da MIT não representa uma auditoria das licenças de terceiros.
 
 A disponibilização sob MIT pressupõe que os titulares dos direitos autorais autorizem essa licença. Se algum trecho pertencer a um empregador, cliente ou terceiro, a autorização correspondente precisa existir. O uso na empresa continua sujeito às políticas internas de aprovação de software.
+
+## Windows e instalação corporativa
+
+Veja [o guia de Windows 11 e PowerShell](docs/WINDOWS.md) para instalação sem Maven, mirror corporativo, seleção de pastas/ambientes e diagnóstico. Após instalar, execute `java -jar target/gerador-docs-tests-3.0.0.jar --doctor --runner bruno`. Use `--folder HOMOLOGACAO` para limitar a execução recursiva a uma pasta da collection.

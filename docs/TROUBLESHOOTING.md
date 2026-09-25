@@ -4,7 +4,7 @@
 |---|---|
 | Bruno CLI não encontrado | Configure BRU_EXECUTABLE ou PATH; `bru --version` no mesmo contexto Java |
 | Newman não encontrado / Cannot run program | Configure NEWMAN_EXECUTABLE. NVM no terminal não implica PATH no IntelliJ/Snap |
-| Executor não gerou JSON | Collection/config/ambiente inválido, flag incompatível ou runner abortado. Verifique `bru run --help` / `newman run --help`; use execução direta em terminal privado para diagnóstico |
+| Executor não gerou JSON | Execute `--doctor --runner bruno` e repita com `--diagnostics`. Collection/config/ambiente inválido, flag incompatível ou runner abortado. Verifique `bru run --help` / `newman run --help`; use execução direta em terminal privado para diagnóstico |
 | Código 1 com HTTP 200/201 | Assertion, skipped, erro de script ou request falhou; é o gate correto |
 | Código 2 | Configuração, input, processo, parser ou geração de PDF falhou. Não interprete artefato parcial como PASS |
 | Playwright executable doesn't exist | Instale Chromium usando a CLI incluída no JAR, com a mesma conta que executa a ferramenta |
@@ -23,3 +23,7 @@ Ao pedir suporte, informe versão da ferramenta, Java/Node/runner, código final
 - `GeradorDocsTests exige JDK 25 ou superior`: o Maven está usando JDK antigo. Confira `mvn -version`, `JAVA_HOME` e o JDK do runner Maven no IntelliJ.
 - `UnsupportedClassVersionError` mencionando versão 69: o JAR foi compilado para Java 25, mas o runtime selecionado é anterior. Confira `java -version`. Os scripts `run_ci.sh` e `integration_test.py` respeitam `JAVA_HOME` quando definido.
 - `sun.misc.Unsafe::objectFieldOffset` ao iniciar Maven 3.8.7 com Java 25: aviso observado em uma dependência interna do Maven (Guava). Não impediu o build/testes; não é motivo para reduzir o release do projeto. Use uma distribuição Maven atualizada conforme a política do ambiente.
+
+## Windows / Artifactory
+
+Veja [Windows e rede corporativa](WINDOWS.md) para PowerShell, `bru.cmd`, Node fora do PATH do IntelliJ, mirror Maven com `mirrorOf=*` e seleção de HOMOLOGACAO. `--environment HML` não carrega variáveis: use `--bruno-env HML` ou `--environment-file`.
